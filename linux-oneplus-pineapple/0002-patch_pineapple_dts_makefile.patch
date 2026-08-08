@@ -1,0 +1,10 @@
+--- a/arch/arm64/boot/dts/qcom/Makefile	2025-12-25 23:09:20.949987393 +0200
++++ b/arch/arm64/boot/dts/qcom/Makefile	2026-01-04 14:29:10.077245665 +0200
+@@ -350,3 +350,5 @@
+ dtb-$(CONFIG_ARCH_QCOM)	+= x1p42100-lenovo-thinkbook-16.dtb x1p42100-lenovo-thinkbook-16-el2.dtb
+ x1p64100-microsoft-denali-el2-dtbs	:= x1p64100-microsoft-denali.dtb x1-el2.dtbo
+ dtb-$(CONFIG_ARCH_QCOM)	+= x1p64100-microsoft-denali.dtb x1p64100-microsoft-denali-el2.dtb
++dtb-$(CONFIG_ARCH_QCOM)	+= sm8650-oneplus-caihong.dtb
++DTC_FLAGS_sm8650-oneplus-caihong	:= -@
+---
+#+sm8650-oneplus-caihong-pineapplep-dtbs	:= sm8650-oneplus-caihong.dtb sm8650-oneplus-caihong-overlay.dtbo

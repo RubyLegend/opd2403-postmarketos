@@ -1,0 +1,23 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    model = "OnePlus Pad 2 Overlay";
+    compatible = "qcom,pineapple-mtp", "qcom,pineapple", "qcom,pineapplep", "qcom,pineapplep-mtp", "qcom,mtp", "qcom,sm8650";
+
+    qcom,msm-id = <557 0x20000 577 0x20000>;
+    qcom,board-id = <8 0>;
+    oplus,project-id = <23976 23978>;
+    oplus,hw-id = <24 25 32 33 40 48 49 50>;
+
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            overlay-status = "okay";
+        };
+    };
+
+    __symbols__ { };
+    __fixups__ { };
+    __local_fixups__ { };
+};

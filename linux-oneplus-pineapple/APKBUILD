@@ -1,0 +1,100 @@
+# Kernel config based on: arch/arm64/configs/*idk, upstream?*
+
+maintainer="Serhii Hatsan <serhiihatcan@gmail.com>"
+pkgname="linux-oneplus-pineapple"
+pkgver=7.1
+pkgrel=5
+pkgdesc="OnePlus Pad 2 kernel fork"
+arch="aarch64"
+_carch="arm64"
+_flavor="oneplus-pineapple"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	clang
+	devicepkg-dev
+	findutils
+	flex
+	lld
+	llvm
+	openssl-dev
+	perl
+	xz
+	zstd
+	util-linux
+	dtc
+	android-tools
+"
+
+# Source
+_repository="torvalds/linux"
+#_commit="ffffffffffffffffffffffffffffffffffffffff"
+_tag="7.1-rc5" # without 'v' in the beginning
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_tag.tar.gz::https://github.com/$_repository/archive/refs/tags/v$_tag.tar.gz
+	0001-patch_pineapple_dts.patch
+	0002-patch_pineapple_dts_makefile.patch
+	0003-drm-panel-Add-support-for-Novatek-NT36532-panel.patch
+	0004-drm-msm-dsi-change-sync-mode-to-sync-on-DSI0-rather-.patch
+	0005-drm-msm-dsi-support-DSC-configurations-with-slice_pe.patch
+	dummy-dtbo.dtso
+	$_config
+"
+#	patch_pineapple_dts_downstream.patch
+#	novatek_nt36532_exp.patch::https://marc.info/?l=linux-kernel&m=175932723017605&q=mbox
+#	dsi_slice_per_pkt_exp.patch::https://lore.kernel.org/all/20250220-dual-dsi-v2-3-6c0038d5a2ef@linaro.org/raw
+#	vendor.zip::https://github.com/OnePlusOSS/android_kernel_modules_and_devicetree_oneplus_sm8650/archive/refs/heads/oneplus/sm8650_v_15.0.0_pad2.zip
+builddir="$srcdir/linux-$_tag"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/$_config" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" LLVM=1 \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+
+	make ARCH="$_carch" LLVM=1 \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS" dtbs
+	
+	msg "Compiling dummy DTBO Image..."
+	dtc -O dtb -@ -o "$srcdir/dtbo.dtb" "$srcdir/dummy-dtbo.dtso"
+	mkdtboimg create "$srcdir/dtbo.img" "$srcdir/dtbo.dtb"
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+	make zinstall modules_install dtbs_install \
+		ARCH="$_carch" \
+		LLVM=1 \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_PATH="$pkgdir"/boot \
+		INSTALL_MOD_PATH="$pkgdir" \
+		INSTALL_DTBS_PATH="$pkgdir/boot/dtbs"
+
+	rm -f "$pkgdir"/usr/lib/modules/*/build "$pkgdir"/usr/lib/modules/*/source
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir/usr/share/kernel/$_flavor/kernel.release"
+	
+	# Install the pre-compiled dummy DTBO
+	install -Dm644 "$srcdir/dtbo.img" "$pkgdir"/boot/dtbo.img
+}
+
+sha512sums="
+fc738e2efbc2b5b355a3d0ef97f1b0e3aa4b7d9429b0ac4816839e39724ac9100fa6c819fd9484ed04072a29a6bdda8306bb11261d27fcebdc11605bf7e530f3  linux-oneplus-pineapple-7.1-rc5.tar.gz
+1cd6b9da68702595db0eb6fbceebc567d986e7bade678b9bb79c1b0c78f77ddaa9d9629ef09739ca00b5401422d28681a5c3138b017bd31b7143fd5f467f1736  0001-patch_pineapple_dts.patch
+743ad971933d877ace62cf322cffe6a1926dd93d90dda6c26dad31a1ff4b220f9e94230ddc6c8fc153cc53767a5650698147e59a8d991576f81464ba13cf55f0  0002-patch_pineapple_dts_makefile.patch
+cb6265f0dbb4f35753c6cda74a78bebea6aa18294175498556d2cb089ac6c5da26563bd47a50ea531a643cf967dc5bcefe341a951f7af9e2d74f5b832430b242  0003-drm-panel-Add-support-for-Novatek-NT36532-panel.patch
+6db0ea6e585e50054457b0d959efe691c7fcb6d68dc7144b456f7f04f140bd02a422008bfe40680d3d7b799d7192b007d94df97c7288644f2ffd321221d1a881  0004-drm-msm-dsi-change-sync-mode-to-sync-on-DSI0-rather-.patch
+9ac34413200b8bcb4e8d72441fff9161d0966081e817700127dc607ffcea215a689f4a482663d422b06b4e3e40aa0e11a607efad3310a31a3e81299390e83dc3  0005-drm-msm-dsi-support-DSC-configurations-with-slice_pe.patch
+0ac8756d96b4e84bb0f885c5f68804274844af8f69f08f6e5657905a673bbf3d511893abf705b1ef5e453d8674475afbc9cfb83f4f25f69ae753b1f057c592f0  dummy-dtbo.dtso
+95719efd67f0c921ba910e7da1d0a744158cb833af3c71bd4f1f0dda0fca4d4dc54b6c6de37c760c757a93606d434c11c64db73c0960be358ac36bf780026f7b  config-oneplus-pineapple.aarch64
+"
