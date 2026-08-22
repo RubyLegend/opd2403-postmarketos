@@ -1,0 +1,33 @@
+maintainer=""
+pkgname=firmware-oneplus-pineapple
+pkgver=1
+pkgrel=0
+_commit="817534c15fe4c321c0982fa85032e091d967aa78"
+pkgdesc="Firmware files for OnePlus pineapple and pineapplep"
+url="https://github.com/RubyLegend/firmware-oneplus-pineapple"
+arch="aarch64"
+depends="linux-firmware-qcom"
+license="proprietary"
+source="
+	$pkgname-$_commit.tar.gz::$url/archive/$_commit.tar.gz 
+	0001-gpu-firmware.files
+	0002-display-firmware.files
+	"
+options="!check !strip !archcheck !spdx !tracedeps pmb:cross-native"
+builddir="$srcdir/firmware-oneplus-pineapple-$_commit"
+
+package() {
+	# Installing zap firmware as proprietary
+	install -Dm644 "firmware/gen70900_zap.mbn" "$pkgdir/lib/firmware/qcom/gen70900_zap.mbn"
+	# Installing display firmware
+	install -Dm644 "csot-ppc100hb1-1.fw" "$pkgdir/lib/firmware/csot-ppc100hb1-1.fw"
+
+	install -Dm644 "$srcdir/0001-gpu-firmware.files" "$pkgdir/usr/share/mkinitfs/files/0001-gpu-firmware.files"
+	install -Dm644 "$srcdir/0002-display-firmware.files" "$pkgdir/usr/share/mkinitfs/files/0002-display-firmware.files"
+}
+
+sha512sums="
+b88fc6f668af3ca75c149bf3bc1430492ba479f2441a19dfec8397d9c1996ed9b6396864a861c1838e5f70be8c1bc7e897d3dcbb64e1f41186ae4ec360735e53  firmware-oneplus-pineapple-817534c15fe4c321c0982fa85032e091d967aa78.tar.gz
+dd22390e0ef5053fe19785db48ea7d2e7e580b4e753a01b727badee1d6b37f5e0c9d0a5297f44836e9881e546956f5a86d37ae42a0b706c70c03b805289b3bd0  0001-gpu-firmware.files
+c98052bca14a9677abe86b63567d4f4529a436a83c5fc71a9b26cce05e18f68a4a12e4dbbb82b563a38436da7c932fc2c6a4e0fdd3bc11145d98d4a7615a2eb9  0002-display-firmware.files
+"
