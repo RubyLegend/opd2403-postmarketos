@@ -17,7 +17,7 @@ deviceinfo_external_storage="false"
 # Bootloader related
 deviceinfo_flash_method="fastboot"
 #deviceinfo_kernel_cmdline="console=tty0 loglevel=8 panic=5 PMOS_NOSPLASH pmos_debug_shell clk_ignore_unused pd_ignore_unused fbcon=nodefer initcall_debug ignore_loglevel keep_bootcon fbcon=rotate:1 fbcon=font:VGA8x16 vt.color=0x07"
-deviceinfo_kernel_cmdline="console=tty0 loglevel=8 panic=5 PMOS_NOSPLASH pmos_debug_shell"
+deviceinfo_kernel_cmdline="console=tty0 loglevel=8 panic=5 drm.debug=0x4 msm.dpu_use_virtual_planes=1 PMOS_NOSPLASH pmos_debug_shell"
 deviceinfo_generate_bootimg="true"
 deviceinfo_flash_pagesize="4096"
 deviceinfo_bootimg_qcdt="false"

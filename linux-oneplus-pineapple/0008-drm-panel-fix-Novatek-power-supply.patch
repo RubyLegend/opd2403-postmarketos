@@ -1,0 +1,13 @@
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-08-10 18:02:20.709027034 +0200
++++ b/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-08-10 18:11:33.569534682 +0200
+@@ -50,7 +50,9 @@
+ };
+ 
+ static const struct regulator_bulk_data nt36532_supplies[] = {
+-	{ .supply = "vddio" }, /* 1.8v */
++	{ .supply = "vddio" }, /* 1.8V Digital */
++	{ .supply = "vdd" },   /* 1.2V Core */
++	{ .supply = "vci" },   /* 3.0V Analog */
+ };
+ 
+ static inline struct nt36532 *to_nt36532(struct drm_panel *panel)

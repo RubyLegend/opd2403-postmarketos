@@ -1,0 +1,11 @@
+--- fakesrc/drivers/gpu/drm/msm/dsi/dsi_host.c	2026-08-16 12:21:26.345660304 +0200
++++ fakesrc/drivers/gpu/drm/msm/dsi/dsi_host.c	2026-08-16 12:23:20.116472194 +0200
+@@ -1030,7 +1030,7 @@
+ 			return;
+ 		}
+ 
+-		dsc->pic_width = mode->hdisplay;
++		dsc->pic_width = hdisplay;
+ 		dsc->pic_height = mode->vdisplay;
+ 		DBG("Mode %dx%d\n", dsc->pic_width, dsc->pic_height);
+ 

@@ -1,0 +1,11 @@
+--- fakesrc/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c	2026-08-15 17:28:26.654595103 +0200
++++ fakesrc/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c	2026-08-15 17:29:04.565686302 +0200
+@@ -1613,7 +1613,7 @@
+ 							    dpu_kms->perf.perf_cfg);
+ 
+ 	if (dpu_kms->catalog->caps->has_3d_merge)
+-		adjusted_mode_clk /= 2;
++		adjusted_mode_clk /= 4;
+ 
+ 	/*
+ 	 * The given mode, adjusted for the perf clock factor, should not exceed

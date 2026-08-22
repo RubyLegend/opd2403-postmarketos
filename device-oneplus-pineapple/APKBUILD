@@ -14,6 +14,14 @@ depends="
 	android-tools
 	postmarketos-base
 	lz4
+	msm-firmware-loader
+	soc-qcom
+	soc-qcom-pd-mapper
+	soc-qcom-qbootctl
+	unl0kr-fbforcerefresh
+	make-dynpart-mappings
+	hexagonrpcd
+	firmware-oneplus-pineapple
 "
 makedepends="devicepkg-dev"
 source="
@@ -30,6 +38,6 @@ package() {
 }
 
 sha512sums="
-4bd825a273ec9ac6bdc5b293f45d324f4ac23bdc9bed14f5320ac215091b6e964c87bc97469d9ec02ad49e431c921d663841d721266efb103fc8b81ea4ffa647  deviceinfo
-e70bae17df23dcaaaea0e2d3616556f04baa23f8ee1357785c0f539bf97282d8ddff53953e155b72689bb73beb38c2da3d08de2a61e866684edfa10a6593885d  modules-initfs
+5ab884df36da5d066e46728aea8081de4c42317ef82457457927a51b66f45b0bf45a975b6fb44f8bed1bb20f18473630ceacdcc78c3214a16628d08b45e8d0db  deviceinfo
+9cce102d1ce5e4ad67249c863d1f6c7c47bb063e77dc430c9aa20a5e6c97cc058564f7326d3e14883c28e502518a50093d8847bc813130f32e5b28eda4460702  modules-initfs
 "

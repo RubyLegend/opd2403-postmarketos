@@ -1,0 +1,17 @@
+--- fakesrc/drivers/gpu/drm/msm/disp/dpu1/dpu_hw_intf.c	2026-08-20 13:05:15.697282921 +0200
++++ fakesrc/drivers/gpu/drm/msm/disp/dpu1/dpu_hw_intf_new.c	2026-08-20 13:06:20.301311738 +0200
+@@ -189,10 +189,12 @@
+ 	 * adjusted in drm_mode_to_intf_timing_params().
+ 	 */
+ 	if (p->compression_en && !dp_intf) {
++		u32 dce_bytes = p->dce_bytes_per_line;
++		dce_bytes /= 2;
+ 		if (p->wide_bus_en)
+-			data_width = DIV_ROUND_UP(p->dce_bytes_per_line, 6);
++			data_width = DIV_ROUND_UP(dce_bytes, 6);
+ 		else
+-			data_width = DIV_ROUND_UP(p->dce_bytes_per_line, 3);
++			data_width = DIV_ROUND_UP(dce_bytes, 3);
+ 	} else if (p->wide_bus_en && !dp_intf) {
+ 		data_width = p->width >> 1;
+ 	}

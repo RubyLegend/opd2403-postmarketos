@@ -1,0 +1,12 @@
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-08-09 07:57:13.776859362 +0200
++++ b/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-08-09 21:06:43.822811393 +0200
+@@ -380,7 +380,8 @@
+ 
+ static const struct drm_display_mode csot_display_mode = {
++ 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC, // Possibly panel has negative hsync and vsync. Will check it.
+	/* 120Hz, the typical value */
+-	.clock = (1500 + 118 + 20 + 100) * 2 * (2120 + 26 + 2 + 208) * 120 / 1000,
++	.clock = (1500 + 118 + 20 + 100) * 2 * (2120 + 26 + 2 + 208) * 120 / 1000 * 0.9962, // Dirty hack to fit 514 MHz limit of mainline, will investigate later
+ 	.hdisplay = 1500 * 2,
+ 	.hsync_start = (1500 + 118) * 2,
+ 	.hsync_end = (1500 + 118 + 20) * 2,

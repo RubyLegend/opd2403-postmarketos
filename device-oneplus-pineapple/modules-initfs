@@ -7,3 +7,4 @@
 # '#', and empty lines are ignored. If there are multiple kernel variants
 # with different initramfs module requirements, one modules-initfs.$variant
 # file should be created for each of them.
+panel-novatek-nt36532

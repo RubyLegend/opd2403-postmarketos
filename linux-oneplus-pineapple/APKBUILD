@@ -1,4 +1,4 @@
-# Kernel config based on: arch/arm64/configs/*idk, upstream?*
+# Kernel config based on: arch/arm64/boot/dts/qcom/sm8650-mtp.dts
 
 maintainer="Serhii Hatsan <serhiihatcan@gmail.com>"
 pkgname="linux-oneplus-pineapple"
@@ -28,6 +28,7 @@ makedepends="
 	util-linux
 	dtc
 	android-tools
+	linux-firmware-qcom
 "
 
 # Source
@@ -39,13 +40,27 @@ source="
 	$pkgname-$_tag.tar.gz::https://github.com/$_repository/archive/refs/tags/v$_tag.tar.gz
 	0001-patch_pineapple_dts.patch
 	0002-patch_pineapple_dts_makefile.patch
-	0003-drm-panel-Add-support-for-Novatek-NT36532-panel.patch
-	0004-drm-msm-dsi-change-sync-mode-to-sync-on-DSI0-rather-.patch
+	0003-drm-panel-Add-support-for-novatek_nt36532.patch
 	0005-drm-msm-dsi-support-DSC-configurations-with-slice_pe.patch
+	0006-drm-panel-fix-Novatek-nt36532-clock.patch
+	0007-ktz8866-add-slave-functionality.patch
+	0008-drm-panel-fix-Novatek-power-supply.patch
+	0009-drm-panel-n36532-fix_command_names-LSP_fixes.patch
+	0010-drm-panel-nt36532-mirror-nt36523-dsi-configuration.patch
+	0011-drivers-gpu-msm-adjust_mode_clk_for_opd2403.patch
+	0013-ktz8866-patched-slave.patch
+	0014-drivers-gpu-msm-quad-pipe_patch4.patch
+	0015-drivers-gpu-msm-bonded_dsi_timing.patch
+	0017-drivers-gpu-drm-msm-dsi-fix-dsc-pic_width.patch
+
 	dummy-dtbo.dtso
 	$_config
 "
-#	patch_pineapple_dts_downstream.patch
+
+#	0012-drivers-gpu-msm-patch-dsc-hdisplay.patch
+#	0004-drm-msm-dsi-change-sync-mode-to-sync-on-DSI0-rather-.patch
+#::https://marc.info/?l=linux-kernel&m=175932723017605&q=mbox
+#::https://marc.info/?l=linux-kernel&m=174401935324137&q=mbox
 #	novatek_nt36532_exp.patch::https://marc.info/?l=linux-kernel&m=175932723017605&q=mbox
 #	dsi_slice_per_pkt_exp.patch::https://lore.kernel.org/all/20250220-dual-dsi-v2-3-6c0038d5a2ef@linaro.org/raw
 #	vendor.zip::https://github.com/OnePlusOSS/android_kernel_modules_and_devicetree_oneplus_sm8650/archive/refs/heads/oneplus/sm8650_v_15.0.0_pad2.zip
@@ -90,11 +105,20 @@ package() {
 
 sha512sums="
 fc738e2efbc2b5b355a3d0ef97f1b0e3aa4b7d9429b0ac4816839e39724ac9100fa6c819fd9484ed04072a29a6bdda8306bb11261d27fcebdc11605bf7e530f3  linux-oneplus-pineapple-7.1-rc5.tar.gz
-1cd6b9da68702595db0eb6fbceebc567d986e7bade678b9bb79c1b0c78f77ddaa9d9629ef09739ca00b5401422d28681a5c3138b017bd31b7143fd5f467f1736  0001-patch_pineapple_dts.patch
+8913c1e17d82740f98d2c4840c11312c89e8d0680efd9bee0a8c8698179fce33df2f58b40d7543e4ccebf3c251ef29b38ed6365a9163b4f15cde0c77a1441a52  0001-patch_pineapple_dts.patch
 743ad971933d877ace62cf322cffe6a1926dd93d90dda6c26dad31a1ff4b220f9e94230ddc6c8fc153cc53767a5650698147e59a8d991576f81464ba13cf55f0  0002-patch_pineapple_dts_makefile.patch
-cb6265f0dbb4f35753c6cda74a78bebea6aa18294175498556d2cb089ac6c5da26563bd47a50ea531a643cf967dc5bcefe341a951f7af9e2d74f5b832430b242  0003-drm-panel-Add-support-for-Novatek-NT36532-panel.patch
-6db0ea6e585e50054457b0d959efe691c7fcb6d68dc7144b456f7f04f140bd02a422008bfe40680d3d7b799d7192b007d94df97c7288644f2ffd321221d1a881  0004-drm-msm-dsi-change-sync-mode-to-sync-on-DSI0-rather-.patch
+b0c739e1c1ea874a80491d285f7fdc181f76f77a1fa86aaeffc648b44057db2661f318683cf225ce114634d68ffeeacea54bec1df968b085c5ab4d2895e5a107  0003-drm-panel-Add-support-for-novatek_nt36532.patch
 9ac34413200b8bcb4e8d72441fff9161d0966081e817700127dc607ffcea215a689f4a482663d422b06b4e3e40aa0e11a607efad3310a31a3e81299390e83dc3  0005-drm-msm-dsi-support-DSC-configurations-with-slice_pe.patch
+8d814a56cb2f9132137a85c2adb98db5fbbe9a57412d4ce65028518bc9423ea2c03178c61baffa02ee1e22bd59497b2610c7701d5a6be50f5e3e01d63f09f0ed  0006-drm-panel-fix-Novatek-nt36532-clock.patch
+7ddddc0b32894a68cb8725de234bdda6e197d5d79f06d6f492f9d2fc9c3f20bfe35ab0fa9016d4329b68cc1858f4bfedc36359eec49278b36d5c1b6a64286e64  0007-ktz8866-add-slave-functionality.patch
+c965e01ccf7e2ebc05b29a3e9b89a6eb44afe2470e277717a7310879ba8be49452706d618d54bc1b5287af0fef674a93bb8248614f6b4e02498f1796081833a3  0008-drm-panel-fix-Novatek-power-supply.patch
+354b01017ba781bbefba993d793dd6dcb7b839eb3c6e7cfbb9c1873896ba94d2d407b7bc8d849771774326ebb4b83e9c1974ae804c0b936af07e762cad8e6d81  0009-drm-panel-n36532-fix_command_names-LSP_fixes.patch
+931fa5d1878672815f211d1b894b21eea6c33dbeaac33e3a773d31e4305932c6f909094b2c315b3cbaf8560934440a134fb841834f8a7ee647c5267b41e52c05  0010-drm-panel-nt36532-mirror-nt36523-dsi-configuration.patch
+693517b5ba97d0e64888fb209e13534c1cda486925c767bb027f6e1308fbb14dad2d0c65aa2fdd70bdda6f2d8513b762b8e6f39837b0cebaa44f2c793acbaef9  0011-drivers-gpu-msm-adjust_mode_clk_for_opd2403.patch
+692fa2d77971e5446737ba3f86bbc2ce5d316239f0ff9a0bc645bec32ca42cb6c7d2b15a942fabead7ae8abe42ea6a740a852a9c989ed060b7c66509e300f698  0013-ktz8866-patched-slave.patch
+312a08ea40c1ce82a6202321915fe03902131d82ae26579a40e013ce233f6a65a19b908451c9230e3d50cdcf0a0973669efed6e53a5bf6ecc04929644c5e3416  0014-drivers-gpu-msm-quad-pipe_patch4.patch
+944ac26c45e4c17033f63f4ab601064343834f1d1f2725db43bdef36de9fdd9816144e8dc8b627c3bfa63a0a06efb19816689d6aedda6db84c259f7d8067b329  0015-drivers-gpu-msm-bonded_dsi_timing.patch
+3b66eb49dd0e2294546af1a2ad7d7bd32de8e775dbe62d12c43b320b021e10bf291cefa97733dc6ae5779262df01fe2215e51efae084a41278e7a978291555cd  0017-drivers-gpu-drm-msm-dsi-fix-dsc-pic_width.patch
 0ac8756d96b4e84bb0f885c5f68804274844af8f69f08f6e5657905a673bbf3d511893abf705b1ef5e453d8674475afbc9cfb83f4f25f69ae753b1f057c592f0  dummy-dtbo.dtso
-95719efd67f0c921ba910e7da1d0a744158cb833af3c71bd4f1f0dda0fca4d4dc54b6c6de37c760c757a93606d434c11c64db73c0960be358ac36bf780026f7b  config-oneplus-pineapple.aarch64
+c83c432d6a102a7ee46b1dd5f7f438efbb5f9355174ef928d9719c62993f10b34d9ed7fc993ddbedf3bc9ce681745f79dfb9a5a58464704805948944a21b7137  config-oneplus-pineapple.aarch64
 "

@@ -1,0 +1,21 @@
+This patch fixes dsc parameter population, which used mode->hdisplay
+instead of hdisplay, which includes calculations for bonded dsi
+situations. In case if link is not bonded - hdisplay is already equal
+to mode->hdisplay. Fixes rendering issue for OnePlus Pad 2.
+
+diff --git a/drivers/gpu/drm/msm/dsi/dsi_host.c b/drivers/gpu/drm/msm/dsi/dsi_host.c
+index db6da99375a1..519410ec5197 100644
+--- a/drivers/gpu/drm/msm/dsi/dsi_host.c
++++ b/drivers/gpu/drm/msm/dsi/dsi_host.c
+@@ -1030,9 +1030,9 @@
+ 			return;
+ 		}
+ 
+-		dsc->pic_width = mode->hdisplay;
++		dsc->pic_width = hdisplay;
+ 		dsc->pic_height = mode->vdisplay;
+-		DBG("Mode %dx%d\n", dsc->pic_width, dsc->pic_height);
++		DBG("Mode %dx%d\n", dsc->pic_width, dsc->pic_height);
+ 
+ 		/* we do the calculations for dsc parameters here so that
+ 		 * panel can use these parameters
