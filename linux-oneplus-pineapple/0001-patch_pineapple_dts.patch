@@ -1,10 +1,11 @@
 --- /dev/null	2026-08-21 07:35:49.106641906 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-08-23 18:20:17.225252052 +0200
-@@ -0,0 +1,562 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-08-23 21:55:34.711000345 +0200
+@@ -0,0 +1,824 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
 +#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/leds/common.h>
 +
 +/ {
 +	#address-cells = <0x02>;
@@ -270,6 +271,165 @@
 +		enable-active-high;
 +		regulator-boot-on;
 +	};
++
++	thermal-zones {
++		skin-temp-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x144>;
++
++			trips {
++				skin_alert: skin-alert {
++					temperature = <45000>; /* 45C */
++					hysteresis = <2000>;
++					type = "passive";
++				};
++				skin_crit: skin-crit {
++					temperature = <60000>; /* 60C */
++					hysteresis = <2000>;
++					type = "critical";
++				};
++			};
++
++			cooling-maps {
++				/* Tell the kernel to throttle the CPU if the skin gets too hot */
++				map0 {
++					trip = <&skin_alert>;
++					cooling-device = <&cpu7 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
++				};
++			};
++		};
++		cam-flash-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x145>;
++
++			trips {
++				flash_alert: flash-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				flash_crit: flash-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		wlan-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x146>;
++
++			trips {
++				wlan_alert: wlan-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				wlan_crit: wlan-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		rear-tof-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x148>;
++
++			trips {
++				rear_tof_alert: rear-tof-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				rear_tof_crit: rear-tof-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		usb-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x747>;
++
++			trips {
++				usb_alert: usb-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				usb_crit: usb-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		wls-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x749>;
++
++			trips {
++				wls_alert: wls-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				wls_crit: wls-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		svooc-mos-btb-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-governor = "user_space";
++			thermal-sensors = <&vadc 0x14d>;
++			wake-capable-sensor;
++
++			trips {
++				svooc_mos_btb_alert: svooc-mos-btb-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				svooc_mos_btb_crit: svooc-mos-btb-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++		batt-thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <0>;
++			thermal-sensors = <&vadc 0x744>;
++
++			trips {
++				batt_alert: batt-alert {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "passive";
++				};
++				batt_crit: batt-crit {
++					temperature = <125000>; /* 125C */
++					hysteresis = <1000>;
++					type = "critical";
++				};
++			};
++		};
++
++	};
++
 +};
 +
 +
@@ -562,4 +722,106 @@
 +		touchscreen-inverted-x; // required.
 +		panel = <&mdss_dsi0_panel>;
 +	};
++};
++
++/* Reference the PMK8550 node (which is pmic@0) */
++&pmk8550 {
++	/* Inject the missing Voltage ADC block */
++	vadc: adc@9000 {
++		compatible = "qcom,spmi-adc5-gen3", "qcom,spmi-adc5";
++		reg = <0x9000>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		#io-channel-cells = <1>;
++
++		/* 0x90 0x01 is the End of Conversion (EOC) interrupt on SPMI */
++		interrupts = <0x0 0x90 0x01 IRQ_TYPE_EDGE_RISING>;
++
++		/* OnePlus Pad 2 Skin Thermistor */
++		channel@144 {
++			reg = <0x144>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "skin_msm_therm";
++		};
++
++		/* Camera Flash Thermistor */
++		channel@145 {
++			reg = <0x145>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "cam_flash_therm";
++		};
++		/* WLAN Thermistor */
++		channel@146 {
++			reg = <0x146>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "wlan_therm";
++		};
++		/* Rear TOF Thermistor */
++		channel@148 {
++			reg = <0x148>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "rear_tof_therm";
++		};
++		/* SVOOC Thermistor */
++		channel@14d {
++			reg = <0x14d>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "svooc_therm";
++		};
++		/* Battery Thermistor */
++		channel@744 {
++			reg = <0x744>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "batt_therm";
++		};
++		/* USB Thermistor */
++		channel@747 {
++			reg = <0x747>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "usb_therm";
++		};
++		/* WLS Thermistor */
++		channel@749 {
++			reg = <0x749>;
++			qcom,pre-scaling = <1 1>;
++			qcom,hw-settle-time = <200>;
++			qcom,ratiometric;
++			label = "wls_therm";
++		};
++	};
++};
++
++
++&pm8550_flash {
++	status = "okay";
++
++	led-0 {
++		function = LED_FUNCTION_FLASH;
++		color = <LED_COLOR_ID_WHITE>;
++
++		/* In mainline, led-sources is 1-indexed. <1> maps to downstream qcom,id = <0> */
++		led-sources = <1>;
++
++		/* Torch mode maximum (500 mA) */
++		led-max-microamp = <500000>;
++
++		/* Flash strobe maximum (1.5 A) */
++		flash-max-microamp = <1500000>;
++		flash-max-timeout-us = <1280000>;
++	};
++
 +};
