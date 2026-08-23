@@ -1,6 +1,7 @@
-# OnePlus SM8650 (Caihong) Mainline Bring-up
+# OnePlus Pad 2 OPD2403 (PineappleP, Caihong) Mainline Bring-up
 
 Mainline Linux port based on PostMarket OS for the OnePlus SM8650 (Caihong) platform. 
+This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM8650 MTP base, which was successfully bricked previously by OnePlus ARB bit. Thankfully - managed to get it back online by myself.
 
 ## Current Status
 
