@@ -15,7 +15,8 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **USB Host (OTG)** | 🟨 WIP | Missing VBUS boost / Role-switch |
 | **PCIe / WiFi** | 🟨 WIP | Root Complex detected, Endpoint missing |
 | **Bluetooth** | 🟥 Not Started | Seems to be controlled over PCI Express |
-| **Flash LED** | 🟥 Not Started | PMIC GPIO / LPG |
+| **Flash LED** | 🟩 Working | Routed via PM8550 |
+| **Ambient light sensor** | 🟥 Not Started | Investigating... |
 | **Audio** | 🟥 Not Started | LPASS, requires userspace (Pipewire) |
 | **Camera** | 🟥 Not Started | CamSS, requires userspace (libcamera) |
 | **Battery / Charger** | 🟥 Not Started | SuperVOOC / PMIC routing |
