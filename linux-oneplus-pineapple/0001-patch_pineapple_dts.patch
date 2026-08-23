@@ -1,6 +1,6 @@
 --- /dev/null	2026-08-21 07:35:49.106641906 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-08-21 12:37:12.311973666 +0200
-@@ -0,0 +1,556 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-08-23 18:20:17.225252052 +0200
+@@ -0,0 +1,562 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -399,19 +399,19 @@
 +	qcom,dual-dsi-mode;
 +	qcom,sync-dual-dsi;
 +	qcom,master-dsi;
-+	panel@0 {
++	mdss_dsi0_panel: panel@0 {
 +		compatible = "novatek,nf_nt36532", "csot,ppc100hb1-1";
 +		backlight = <&backlight_ktz8866>;
 +		vddio-supply = <&vreg_l12b_1p8>; /* PMIC 1.8V LDO */
 +		vdd-supply = <&vreg_l11b_1p2>;    /* PMIC 1.2V LDO */
 +		vci-supply = <&vreg_l13b_3p0>;   /* PMIC 3.0V LDO */
-+		te-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>, <&tlmm 87 GPIO_ACTIVE_HIGH>;
++		te-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>, <&tlmm 43 GPIO_ACTIVE_HIGH>;
 +		spi-max-frequency = <12000000>;
 +		interrupt-parent = <&tlmm>;
 +		interrupts = <162 0x2002>;
-+		irq-gpio = <&tlmm 162 0x2002>;
-+                reset-gpios = <&tlmm 161 GPIO_ACTIVE_HIGH>;
-+                cs-gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
++		//irq-gpio = <&tlmm 162 0x2002>;
++                reset-gpios = <&tlmm 133 GPIO_ACTIVE_HIGH>;
++		//cs-gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
 +		pinctrl-0 = <&disp0_reset_n_active>, <&ts_reset_active>,
 +                <&mdp_vsync>, <&dsi_pw_reset_active>;
 +		pinctrl-1 = <&disp0_reset_n_suspend>, <&ts_reset_suspend>,
@@ -546,14 +546,20 @@
 +	status = "okay";
 +	
 +	novatek_touch: touch@0 {
-+	        compatible = "novatek,nt36532-spi-fw";
++	        compatible = "novatek,nt36532-ts";
 +	        reg = <0>;
 +	        
 +	        /* 12 MHz SPI Clock */
 +	        spi-max-frequency = <12000000>;
 +	        
 +	        interrupt-parent = <&tlmm>;
-+	        interrupts = <162 IRQ_TYPE_LEVEL_LOW>;
-+	        touch-gpios = <&tlmm 162 GPIO_ACTIVE_LOW>;
++	        interrupts = <162 IRQ_TYPE_EDGE_FALLING>;
++		reset-gpios = <&tlmm 161 GPIO_ACTIVE_HIGH>;
++
++		touchscreen-size-y = <30000>;
++		touchscreen-size-x = <21200>;
++		touchscreen-swapped-x-y; // otherwise not matching with physical orientation of panel
++		touchscreen-inverted-x; // required.
++		panel = <&mdss_dsi0_panel>;
 +	};
 +};
