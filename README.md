@@ -20,3 +20,5 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **Audio** | 🟥 Not Started | LPASS, requires userspace (Pipewire) |
 | **Camera** | 🟥 Not Started | CamSS, requires userspace (libcamera) |
 | **Battery / Charger** | 🟥 Not Started | SuperVOOC / PMIC routing |
+| **Sensors** | 🟥 Not Started | Somewhere in the _future_... |
+| **GPS** | 🟥 Not Started | Somewhere in the _future_... |
