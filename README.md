@@ -16,7 +16,6 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **PCIe / WiFi** | 🟨 WIP | Root Complex detected, Endpoint missing. Chip: Qualcomm "Kiwi" (WCN7850) |
 | **Bluetooth** | 🟥 Not Started | Seems to be controlled over PCI Express |
 | **Flash LED** | 🟩 Working | Routed via PM8550 |
-| **Ambient light sensor** | 🟥 Not Started | Investigating... |
 | **Audio** | 🟥 Not Started | LPASS, requires userspace (Pipewire), 6x Awinic `aw882xx_smartpa` |
 | **Camera** | 🟥 Not Started | CamSS, requires userspace (libcamera), Sensors: `sc1320cs` (Rear) / `sc820cs` (Front) |
 | **Battery / Charger** | 🟥 Not Started | PM8550B + Southchip `sc8547-slave` / `sc8547a` (SuperVOOC) |
