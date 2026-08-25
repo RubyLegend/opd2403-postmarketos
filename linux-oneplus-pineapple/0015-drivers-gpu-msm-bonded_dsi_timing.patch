@@ -1,3 +1,4 @@
+Remove later. Purely debugging purposes.
 --- fakesrc/drivers/gpu/drm/msm/dsi/dsi_host.c	2026-08-16 12:21:26.345660304 +0200
 +++ fakesrc/drivers/gpu/drm/msm/dsi/dsi_host.c	2026-08-18 11:07:51.948412924 +0200
 @@ -18,12 +18,13 @@
