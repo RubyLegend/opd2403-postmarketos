@@ -1,0 +1,236 @@
+--- fakesrc/drivers/power/supply/qcom_battmgr.c.orig	2026-08-31 11:58:15.947587577 +0200
++++ fakesrc/drivers/power/supply/qcom_battmgr.c	2026-08-31 11:57:30.686078794 +0200
+@@ -5,6 +5,7 @@
+  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+  */
+ #include <linux/auxiliary_bus.h>
++#include <linux/jiffies.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/nvmem-consumer.h>
+@@ -103,6 +104,34 @@
+ #define CHARGE_CTRL_END_THR_MIN		55
+ #define CHARGE_CTRL_END_THR_MAX		100
+ #define CHARGE_CTRL_DELTA_SOC		5
++/* OnePlus / Oplus proprietary PMIC GLINK notifications */
++#define NOTIF_OPLUS_VOOC_STATUS 0x48
++#define NOTIF_OPLUS_VOOC_STATUS_SET 0x49
++#define NOTIF_OPLUS_OTG_ENABLE 0x50
++#define NOTIF_OPLUS_OTG_DISABLE 0x51
++#define NOTIF_OPLUS_VOOC_VBUS_ADC_EN 0x52
++#define NOTIF_OPLUS_CID_DETECT 0x53
++#define NOTIF_OPLUS_QC_DETECT 0x54
++#define NOTIF_OPLUS_TYPEC_STATE_CHANGE 0x55
++#define NOTIF_OPLUS_PD_SVOOC 0x56
++#define NOTIF_OPLUS_PLUGIRQ 0x57
++#define NOTIF_OPLUS_APSD_DONE 0x58
++#define NOTIF_OPLUS_CHG_STATUS_GET 0x59
++#define NOTIF_OPLUS_PD_SOFT_RESET 0x5a
++#define NOTIF_OPLUS_CHG_STATUS_SET 0x60
++#define NOTIF_OPLUS_UFCS_DISABLE_MOS 0x73
++#define NOTIF_OPLUS_UFCS_PWR_INFO_READY 0x77
++#define NOTIF_OPLUS_BATTERY_RESET_START 0x78
++#define NOTIF_OPLUS_PD_SOURCECAP_DONE 0x79
++
++#define OPLUS_USB_VOOCPHY_ENABLE 16
++#define OPLUS_USB_OTG_AP_ENABLE 17
++#define OPLUS_USB_OTG_SWITCH 18
++#define OPLUS_USB_TYPEC_MODE 22
++#define OPLUS_USB_OTG_VBUS_REG_EN 24
++#define OPLUS_USB_SET_OVP_CFG 53
++
++// End OnePlus proprietary notifications call definitions
+ 
+ struct qcom_battmgr_enable_request {
+ 	struct pmic_glink_hdr hdr;
+@@ -332,6 +361,12 @@
+ 	struct qcom_battmgr_wireless wireless;
+ 
+ 	struct work_struct enable_work;
++	// OnePlus specific work functions
++	bool oplus_otg_state;
++	bool oplus_was_online;
++	struct work_struct oplus_otg_work;
++	struct work_struct oplus_update_usb_state_work;
++	struct delayed_work oplus_init_work;
+ 
+ 	/*
+ 	 * @lock is used to prevent concurrent power supply requests to the
+@@ -1187,6 +1222,98 @@
+ 	.get_property = qcom_battmgr_wls_get_property,
+ };
+ 
++// OnePlus specific worker functions
++static void qcom_battmgr_oplus_init_worker(struct work_struct *work)
++{
++	struct qcom_battmgr *battmgr = container_of(work, struct qcom_battmgr, oplus_init_work.work);
++
++	mutex_lock(&battmgr->lock);
++	dev_info(battmgr->dev, "Initializing OnePlus Type-C Port\n");
++	
++	/* 1. Give Application Processor (AP) control over OTG events (MUST BE 1) */
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_AP_ENABLE, 1);
++	
++	/* 2. Set Type-C mode to Dual-Role (DRP) to listen for unpowered hubs */
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 0);
++	
++	mutex_unlock(&battmgr->lock);
++}
++
++static void qcom_battmgr_oplus_otg_worker(struct work_struct* work)
++{
++	struct qcom_battmgr* battmgr = container_of(work, struct qcom_battmgr, oplus_otg_work);
++	bool enable = battmgr->oplus_otg_state;
++
++	mutex_lock(&battmgr->lock);
++	if (enable) {
++		dev_info(battmgr->dev, "Switching into host mode\n");
++
++		/* 1. Turn off ADSP charging logic (VOOCPHY) so it releases D+/D- */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_VOOCPHY_ENABLE, 0);
++		/* 2. Route D+/D- and SuperSpeed lines to the Snapdragon AP */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_AP_ENABLE, 1);
++		/* 3. Close the physical OTG switch */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_SWITCH, 1);
++		/* 4. Enable USB OVP data path */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_SET_OVP_CFG, 1);
++
++		/* 5. Set Type-C mode to Host (2) */
++		// qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 2);
++		/* 6. Turn on 5V VBUS Boost */
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 0);
++		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_VBUS_REG_EN, 1);
++	} else {
++		dev_info(battmgr->dev, "Switching into device mode\n");
++
++		/* 1. Safely drop 5V VBUS power */
++		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_VBUS_REG_EN, 0);
++		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 500000);
++	/* 2. Reset Type-C mode back to Dual-Role/None (0) */
++		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 0);
++
++		/* 3. Disconnect data lines from the AP */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_SET_OVP_CFG, 0);
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_SWITCH, 0);
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_AP_ENABLE, 1);
++		/* 4. Hand D+/D- control back to the ADSP for wall charging */
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_VOOCPHY_ENABLE, 1);
++	}
++	mutex_unlock(&battmgr->lock);
++}
++
++static void qcom_battmgr_oplus_update_usb_state_worker(struct work_struct* work)
++{
++	struct qcom_battmgr* battmgr = container_of(work, struct qcom_battmgr, oplus_update_usb_state_work);
++
++	mutex_lock(&battmgr->lock);
++
++	dev_info(battmgr->dev, "[DIAGNOSTIC] 0x57 Fired, logging before: | was_online: %d |online: %d | type: %d | volt: %d | otg_en: %d\n",
++			 battmgr->oplus_was_online, battmgr->usb.online, battmgr->usb.usb_type, battmgr->usb.voltage_now, battmgr->oplus_otg_state);
++	/* Ask PMIC if we are currently receiving VBUS power */
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_GET, USB_ONLINE, 0);
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_GET, USB_TYPE, 0);
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_GET, USB_VOLT_NOW, 0);
++
++	dev_info(battmgr->dev, "[DIAGNOSTIC] 0x57 Fired, logging after query: | was_online: %d | online: %d | type: %d | volt: %d | otg_en: %d\n",
++			 battmgr->oplus_was_online, battmgr->usb.online, battmgr->usb.usb_type, battmgr->usb.voltage_now, battmgr->oplus_otg_state);
++
++	/* If no power is incoming, and we aren't an active OTG host, force DRP mode */
++	if (battmgr->oplus_was_online == 1 && battmgr->usb.online == 0 && !battmgr->oplus_otg_state) {
++		dev_info(battmgr->dev, "USB Disconnected. Resetting Type-C port to DRP\n");
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_AP_ENABLE, 1);
++		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 0);
++	battmgr->oplus_otg_state = 1;
++	} else {
++		battmgr->oplus_was_online = battmgr->usb.online;
++	battmgr->oplus_otg_state = 0;
++	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_AP_ENABLE, 0);
++	}
++
++	mutex_unlock(&battmgr->lock);
++}
++
++// End OnePlus specific worker functions
++
+ static void qcom_battmgr_notification(struct qcom_battmgr *battmgr,
+ 				      const struct qcom_battmgr_message *msg,
+ 				      int len)
+@@ -1201,6 +1328,8 @@
+ 
+ 	notification = le32_to_cpu(msg->notification);
+ 	notification &= 0xff;
++
++	dev_info(battmgr->dev, "DEBUG BATTMGR: notification %#x arrived, handling\n", notification);
+ 	switch (notification) {
+ 	case NOTIF_BAT_INFO:
+ 		battmgr->info.valid = false;
+@@ -1216,6 +1345,48 @@
+ 	case NOTIF_WLS_PROPERTY:
+ 		power_supply_changed(battmgr->wls_psy);
+ 		break;
++	// Adding OnePlus notification handling
++	case NOTIF_OPLUS_OTG_ENABLE: // 0x50
++		battmgr->oplus_otg_state = true;
++		schedule_work(&battmgr->oplus_otg_work);
++		power_supply_changed(battmgr->usb_psy);
++		dev_info(battmgr->dev, "OnePlus OTG host mode enabled\n");
++		break;
++	case NOTIF_OPLUS_OTG_DISABLE: // 0x51
++		battmgr->oplus_otg_state = false;
++		schedule_work(&battmgr->oplus_otg_work);
++		power_supply_changed(battmgr->usb_psy);
++		dev_info(battmgr->dev, "OnePlus OTG host mode disabled\n");
++		break;
++	case NOTIF_OPLUS_TYPEC_STATE_CHANGE:
++		dev_info(battmgr->dev, "OnePlus state change notification: %#x, updating usb state\n", notification);
++		schedule_work(&battmgr->oplus_update_usb_state_work);
++		power_supply_changed(battmgr->usb_psy);
++		power_supply_changed(battmgr->bat_psy);
++		break;
++	case NOTIF_OPLUS_APSD_DONE:
++	case NOTIF_OPLUS_CID_DETECT:
++	case NOTIF_OPLUS_QC_DETECT:
++	case NOTIF_OPLUS_PLUGIRQ:
++	case NOTIF_OPLUS_PD_SOURCECAP_DONE:
++		dev_info(battmgr->dev, "OnePlus notification: %#x\n", notification);
++		// dev_info(battmgr->dev, "OnePlus plug in IRQ notification: %#x, updating usb state\n", notification);
++		power_supply_changed(battmgr->usb_psy);
++		power_supply_changed(battmgr->bat_psy);
++		break;
++	case NOTIF_OPLUS_VOOC_STATUS:
++	case NOTIF_OPLUS_VOOC_STATUS_SET:
++	case NOTIF_OPLUS_VOOC_VBUS_ADC_EN:
++	case NOTIF_OPLUS_PD_SVOOC:
++	case NOTIF_OPLUS_CHG_STATUS_GET:
++	case NOTIF_OPLUS_PD_SOFT_RESET:
++	case NOTIF_OPLUS_CHG_STATUS_SET:
++	case NOTIF_OPLUS_UFCS_DISABLE_MOS:
++	case NOTIF_OPLUS_UFCS_PWR_INFO_READY:
++	case NOTIF_OPLUS_BATTERY_RESET_START:
++		/* Handled / acknowledged proprietary fast charging events */
++		dev_info(battmgr->dev, "OnePlus charging notification: %#x\n", notification);
++		break;
+ 	default:
+ 		dev_err(battmgr->dev, "unknown notification: %#x\n", notification);
+ 		break;
+@@ -1649,6 +1820,12 @@
+ 	psy_cfg_supply.num_supplicants = 1;
+ 
+ 	INIT_WORK(&battmgr->enable_work, qcom_battmgr_enable_worker);
++	// Initialize OnePlus specific worker thread
++	INIT_WORK(&battmgr->oplus_otg_work, qcom_battmgr_oplus_otg_worker);
++	INIT_WORK(&battmgr->oplus_update_usb_state_work, qcom_battmgr_oplus_update_usb_state_worker);
++	INIT_DELAYED_WORK(&battmgr->oplus_init_work, qcom_battmgr_oplus_init_worker);
++	// End OnePlus specific worker threads
++
+ 	mutex_init(&battmgr->lock);
+ 	init_completion(&battmgr->ack);
+ 
+@@ -1720,6 +1897,7 @@
+ 
+ 	pmic_glink_client_register(battmgr->client);
+ 
++	schedule_delayed_work(&battmgr->oplus_init_work, msecs_to_jiffies(2000));
+ 	return 0;
+ }
+ 
