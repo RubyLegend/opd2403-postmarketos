@@ -12,7 +12,7 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **Display** | 🟩 Working | Novatek NT36532 Dual DSI initialized with fixed upstream DSC configuration (see patch 0017) |
 | **Touchscreen** | 🟩 Working | Novatek NT36532 (TDDI, SPI DMA, 144Hz) |
 | **USB Peripheral** | 🟩 Working | Telnet / `usb_gadget` mode  |
-| **USB Host** | 🟨 WIP / Partially working | Proprietary ADSP protocol to switch usb from `device` mode to `host`. Porting downstream driver to make it cleaner in a state machine |
+| **USB Host** | 🟩 Working | USB host mode initialize successfully without any issues. Baseus USB hub detected properly, with all USB devices, USB Ethernet and HDMI port. Seamless charging working as well. |
 | **PCIe / WiFi** | 🟨 WIP | Root Complex detected, Endpoint missing. Chip: Qualcomm "Kiwi" (WCN7850) |
 | **Bluetooth** | 🟥 Not Started | Seems to be controlled over PCI Express |
 | **Flash LED** | 🟩 Working | Routed via PM8550 |
