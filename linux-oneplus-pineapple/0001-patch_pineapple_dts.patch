@@ -1,6 +1,6 @@
---- /dev/null	2026-08-21 07:35:49.106641906 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-08-25 07:52:42.694285821 +0200
-@@ -0,0 +1,899 @@
+--- /dev/null	2026-09-24 15:34:28.681420201 +0200
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-09-30 09:27:25.114043410 +0200
+@@ -0,0 +1,901 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -250,9 +250,9 @@
 +		mode-recovery = <0x01>;
 +	};
 +
-+	bl_vddpos_5p5: bl-vddpos-regulator {
++	lcd_vsp_5p5: vsp-regulator {
 +		compatible = "regulator-fixed";
-+		regulator-name = "bl_vddpos_5p5";
++		regulator-name = "vsp_5p5";
 +		regulator-min-microvolt = <5500000>;
 +		regulator-max-microvolt = <5500000>;
 +		regulator-enable-ramp-delay = <233>;
@@ -261,9 +261,9 @@
 +		regulator-boot-on;
 +	};
 +
-+	bl_vddneg_5p5: bl-vddneg-regulator {
++	lcd_vsn_5p5: vsn-regulator {
 +		compatible = "regulator-fixed";
-+		regulator-name = "bl_vddneg_5p5";
++		regulator-name = "vsn_5p5";
 +		regulator-min-microvolt = <5500000>;
 +		regulator-max-microvolt = <5500000>;
 +		regulator-enable-ramp-delay = <233>;
@@ -565,6 +565,8 @@
 +		vddio-supply = <&vreg_l12b_1p8>; /* PMIC 1.8V LDO */
 +		vdd-supply = <&vreg_l11b_1p2>;    /* PMIC 1.2V LDO */
 +		vci-supply = <&vreg_l13b_3p0>;   /* PMIC 3.0V LDO */
++		vsp-supply = <&lcd_vsp_5p5>;   /* +5.5 V */
++		vsn-supply = <&lcd_vsn_5p5>;   /* -5.5 V */
 +		te-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>, <&tlmm 43 GPIO_ACTIVE_HIGH>;
 +		spi-max-frequency = <12000000>;
 +		interrupt-parent = <&tlmm>;
@@ -685,8 +687,8 @@
 +		reg = <0x11>;
 +		compatible = "kinetic,ktz8866";
 +		enable-gpios = <&tlmm 89 GPIO_ACTIVE_HIGH>;
-+		vddpos-supply = <&bl_vddpos_5p5>;
-+		vddneg-supply = <&bl_vddneg_5p5>;
++		// vddpos-supply = <&bl_vddpos_5p5>;
++		// vddneg-supply = <&bl_vddneg_5p5>;
 +		current-num-sinks = <5>;
 +		kinetic,current-ramp-delay-ms = <128>;
 +		kinetic,led-enable-ramp-delay-ms = <1>;

@@ -1,5 +1,5 @@
 --- fakesrc/drivers/power/supply/qcom_battmgr.c.orig	2026-08-31 11:58:15.947587577 +0200
-+++ fakesrc/drivers/power/supply/qcom_battmgr.c	2026-08-31 11:57:30.686078794 +0200
++++ fakesrc/drivers/power/supply/qcom_battmgr.c	2026-08-31 13:13:56.611201360 +0200
 @@ -5,6 +5,7 @@
   * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
   */
@@ -98,14 +98,14 @@
 +		/* 5. Set Type-C mode to Host (2) */
 +		// qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 2);
 +		/* 6. Turn on 5V VBUS Boost */
-+	qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 0);
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 0);
 +		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_VBUS_REG_EN, 1);
 +	} else {
 +		dev_info(battmgr->dev, "Switching into device mode\n");
 +
 +		/* 1. Safely drop 5V VBUS power */
 +		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_OTG_VBUS_REG_EN, 0);
-+		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 500000);
++		//qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, USB_INPUT_CURR_LIMIT, 500000);
 +	/* 2. Reset Type-C mode back to Dual-Role/None (0) */
 +		qcom_battmgr_request_property(battmgr, BATTMGR_USB_PROPERTY_SET, OPLUS_USB_TYPEC_MODE, 0);
 +
