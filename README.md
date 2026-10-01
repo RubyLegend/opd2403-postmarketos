@@ -13,8 +13,8 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **Touchscreen** | 🟩 Working | Novatek NT36532 (TDDI, SPI DMA, 144Hz) |
 | **USB Peripheral** | 🟩 Working | Telnet / `usb_gadget` mode  |
 | **USB Host** | 🟩 Working | USB host mode initialize successfully without any issues. Baseus USB hub detected properly, with all USB devices, USB Ethernet and HDMI port. Seamless charging working as well. |
-| **PCIe / WiFi** | 🟨 WIP | Root Complex detected, Endpoint missing. Chip: Qualcomm "Kiwi" (WCN7850) |
-| **Bluetooth** | 🟥 Not Started | Seems to be controlled over PCI Express |
+| **PCIe / WiFi** | 🟩 Working | Both Root Complex and WCN785x FastConnect 7800 wireless card are detected. Fully working. |
+| **Bluetooth** | 🟨 WIP | Controlled over UART, need to bring up in device tree and map firmware files. |
 | **Flash LED** | 🟩 Working | Routed via PM8550 |
 | **Buttons** | 🟩 Working | Properly mapped volume and power buttons. No issues. |
 | **Audio** | 🟨 WIP | LPASS, requires userspace (Pipewire)<br>6x Awinic `aw882xx_smartpa` initialized |
@@ -24,7 +24,7 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **GPS** | 🟥 Not Started | Somewhere in the _future_... |
 | **NFC (over Pogo Keyboard)**| 🟥 Not Started | `qcom,sn-nci` |
 | **Thermals** | 🟩 Working | VADC PMIC sensors mapped (`skin-temp`, `flash`, `wlan`, `battery`, etc.) |
-| **GPU** | 🟨 WIP | Adreno 750 initializes (`renderD128`), firmware loading. Missing `vdd` and `vddcx` regulators (causes dummy regulator fallback). |
+| **GPU** | 🟩 Working | Adreno 750 initialized, firmware loaded. Graphics acceleration present, full OpenGL 4.6, 5.5 Gb VRAM, Vulkan API working, OpenCL 3.1. No issues detected. |
 | **Remoteproc (ADSP/CDSP)** | 🟩 Working | Both ADSP and CDSP successfully initialized |
 | **Suspend/Resume** | 🟨 Partial | Device successfully transitions to suspend (s2ram/s2idle, not sure which), and returns back in case no usb change happened.<br>If something happened on usb stack during wake up (plugged new device or unplugged charger/usb device) - kernel panic and reboot. Requires further investigation to somehow collect logs |
 | **RAMOOPS** | 🟥 Not Working Yet | RAMOOPS region defined in dt, and have successfully attached kernel driver, but after a panic reboot - nothing is present in /sys/fs/pstore/, in both Android and Linux.<br>Assume that Qualcomm Watchdog wipes memory during panic reboot |
