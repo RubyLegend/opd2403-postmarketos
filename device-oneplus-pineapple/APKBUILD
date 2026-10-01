@@ -24,6 +24,7 @@ depends="
 	hexagonrpcd
 	firmware-oneplus-pineapple
 	qrtr
+	linux-firmware-ath12k
 "
 makedepends="devicepkg-dev"
 source="
@@ -40,6 +41,6 @@ package() {
 }
 
 sha512sums="
-5bc15f4e1fe4ed3f32360253882e4d4959661634e1c0fcc98ee9709d3f9ffa05bc950a6319273783ec042e498a6a84d660c86b070d40903ba93e794727d29728  deviceinfo
+ce97148853800ac89820369cc7bfe5bdcd916f47e8990e9f766e67b6453b9a62c2658d380f9827a2c2d513f044be53e895d4fb654aa92f61afc990a0ec8d81f7  deviceinfo
 9cce102d1ce5e4ad67249c863d1f6c7c47bb063e77dc430c9aa20a5e6c97cc058564f7326d3e14883c28e502518a50093d8847bc813130f32e5b28eda4460702  modules-initfs
 "
