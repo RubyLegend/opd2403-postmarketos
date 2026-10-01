@@ -1,6 +1,6 @@
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-09-30 09:27:25.114043410 +0200
-@@ -0,0 +1,901 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-01 18:39:45.963771864 +0200
+@@ -0,0 +1,965 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -84,7 +84,7 @@
 +			reg = <0x0 0x9b09c000 0x0 0x4000>;
 +		};
 +
-+		cnss_wlan_region {
++		cnss_wlan_region: cnss_wlan_region {
 +			size = <0x00 0x2000000>;
 +			alignment = <0x00 0x400000>;
 +			reusable;
@@ -236,10 +236,10 @@
 +		pinctrl-names = "default";
 +		pinctrl-0 = <&vol_up_default>;
 +		
-+		key-volume-up {
-+		    label = "Volume Up";
++		key-volume-down {
++		    label = "Volume Down";
 +		    gpios = <&pm8550_gpios 6 GPIO_ACTIVE_LOW>;
-+		    linux,code = <KEY_VOLUMEUP>;
++		    linux,code = <KEY_VOLUMEDOWN>;
 +		    debounce-interval = <15>;
 +		    wakeup-source;
 +		};
@@ -430,8 +430,38 @@
 +
 +	};
 +
-+};
 +
++	wcn7850-pmu {
++		compatible = "qcom,wcn7850-pmu";
++		
++		pinctrl-names = "default";
++		pinctrl-0 = <&cnss_wlan_en_active>;
++		
++		wlan-enable-gpios = <&tlmm 16 GPIO_ACTIVE_HIGH>;
++		bt-enable-gpios = <&tlmm 17 GPIO_ACTIVE_HIGH>;
++
++		vdd-supply       = <&vreg_s4i_0p85>;     /* Downstream vdd-wlan-supply */
++		vddio-supply     = <&vreg_l15b_1p8>;     /* Downstream vdd-wlan-io-supply */
++		vddio1p2-supply  = <&vreg_l3c_1p2>;      /* Downstream vdd-wlan-io12-supply */
++		
++		vddaon-supply    = <&vreg_s2c_0p8>; /* Downstream vdd-wlan-aon */
++		vdddig-supply    = <&vreg_s3c_0p9>; /* Downstream vdd-wlan-dig */
++		vddrfa1p2-supply = <&vreg_s1c_1p2>; /* Downstream vdd-wlan-rfa2 */
++		vddrfa1p8-supply = <&vreg_s6c_1p8>; /* Downstream vdd-wlan-rfa1 */
++
++		regulators {
++			vreg_pmu_aon: ldo1 { regulator-name = "vreg_pmu_aon"; };
++			vreg_pmu_wlcx: ldo2 { regulator-name = "vreg_pmu_wlcx"; };
++			vreg_pmu_wlmx: ldo3 { regulator-name = "vreg_pmu_wlmx"; };
++			vreg_pmu_rfa_cmn: ldo4 { regulator-name = "vreg_pmu_rfa_cmn"; };
++			vreg_pmu_rfa_0p8: ldo5 { regulator-name = "vreg_pmu_rfa_0p8"; };
++			vreg_pmu_rfa_1p2: ldo6 { regulator-name = "vreg_pmu_rfa_1p2"; };
++			vreg_pmu_rfa_1p8: ldo7 { regulator-name = "vreg_pmu_rfa_1p8"; };
++			vreg_pmu_pcie_0p9: ldo8 { regulator-name = "vreg_pmu_pcie_0p9"; };
++			vreg_pmu_pcie_1p8: ldo9 { regulator-name = "vreg_pmu_pcie_1p8"; };
++		};
++	};
++};
 +
 +&soc {
 +	
@@ -544,6 +574,15 @@
 +        drive-strength = <2>;
 +        bias-pull-down;
 +    };
++
++    // WLAN ath12k GPIO 16 control pin
++    cnss_wlan_en_active: cnss-wlan-en-active-state {
++        pins = "gpio16";
++        function = "gpio";
++        drive-strength = <16>;
++        bias-pull-up;
++        output-high;
++    };
 +};
 +
 +&pcie1 {
@@ -633,8 +672,9 @@
 +};
 +
 +&pon_resin {
++	label = "Volume Up";
 +	status = "okay";
-+	linux,code = <0x73>;
++	linux,code = <KEY_VOLUMEUP>;
 +};
 +
 +&pmk8550_gpios {
@@ -901,4 +941,28 @@
 +// Resizing adsp and cdsp
 +&adspslpi_mem {
 +	reg = <0 0x9df00000 0 0x5280000>;
++};
++
++&pcieport0 {
++	wifi@0 {
++		compatible = "pci17cb,1107";
++		// WCN7850 PCIe Node
++		/* 0x10000 maps to Bus 1, Device 0, Function 0 (01:00.0) */
++		reg = <0x10000 0x0 0x0 0x0 0x0>;
++		
++		memory-region = <&cnss_wlan_region>; 
++
++		vddaon-supply    = <&vreg_pmu_aon>;
++		vddwlcx-supply   = <&vreg_pmu_wlcx>;
++		vddwlmx-supply   = <&vreg_pmu_wlmx>;
++		vddrfacmn-supply = <&vreg_pmu_rfa_cmn>;
++		vddrfa0p8-supply = <&vreg_pmu_rfa_0p8>;
++		vddrfa1p2-supply = <&vreg_pmu_rfa_1p2>;
++		vddrfa1p8-supply = <&vreg_pmu_rfa_1p8>;
++		vddpcie0p9-supply= <&vreg_pmu_pcie_0p9>;
++		vddpcie1p8-supply= <&vreg_pmu_pcie_1p8>;
++		
++		/* Optional but recommended: Helps ath12k pick the right calibration */
++		qcom,ath12k-calibration-variant = "OnePlus_Pad_2";
++	};
 +};
