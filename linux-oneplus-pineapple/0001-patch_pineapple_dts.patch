@@ -1,6 +1,6 @@
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-01 18:39:45.963771864 +0200
-@@ -0,0 +1,965 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-02 05:50:37.657071543 +0200
+@@ -0,0 +1,984 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -943,6 +943,11 @@
 +	reg = <0 0x9df00000 0 0x5280000>;
 +};
 +
++&pcie0 {
++	wake-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>,
++		     <&tlmm 19 GPIO_ACTIVE_HIGH>;
++};
++
 +&pcieport0 {
 +	wifi@0 {
 +		compatible = "pci17cb,1107";
@@ -961,8 +966,22 @@
 +		vddrfa1p8-supply = <&vreg_pmu_rfa_1p8>;
 +		vddpcie0p9-supply= <&vreg_pmu_pcie_0p9>;
 +		vddpcie1p8-supply= <&vreg_pmu_pcie_1p8>;
-+		
-+		/* Optional but recommended: Helps ath12k pick the right calibration */
-+		qcom,ath12k-calibration-variant = "OnePlus_Pad_2";
 +	};
++};
++
++&uart14 {
++    status = "okay";
++
++    bluetooth {
++        compatible = "qcom,wcn7850-bt";
++        max-speed = <3200000>;
++
++        vddaon-supply = <&vreg_pmu_aon>;
++        vddwlcx-supply = <&vreg_pmu_wlcx>;
++        vddwlmx-supply = <&vreg_pmu_wlmx>;
++        vddrfacmn-supply = <&vreg_pmu_rfa_cmn>;
++        vddrfa0p8-supply = <&vreg_pmu_rfa_0p8>;
++        vddrfa1p2-supply = <&vreg_pmu_rfa_1p2>;
++        vddrfa1p8-supply = <&vreg_pmu_rfa_1p8>;
++    };
 +};
