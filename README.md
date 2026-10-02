@@ -14,7 +14,7 @@ This device is based on Qualcomm Snapdragon 8 Gen 3 Processor, specifically SM86
 | **USB Peripheral** | 🟩 Working | Telnet / `usb_gadget` mode  |
 | **USB Host** | 🟩 Working | USB host mode initialize successfully without any issues. Baseus USB hub detected properly, with all USB devices, USB Ethernet and HDMI port. Seamless charging working as well. |
 | **PCIe / WiFi** | 🟩 Working | Both Root Complex and WCN785x FastConnect 7800 wireless card are detected. Fully working. |
-| **Bluetooth** | 🟨 WIP | Controlled over UART, need to bring up in device tree and map firmware files. |
+| **Bluetooth** | 🟨 Partial | Subsystem works. Pairing and audio playback works. Microphone input is not visible yet due to missing full audio subsystem. |
 | **Flash LED** | 🟩 Working | Routed via PM8550 |
 | **Buttons** | 🟩 Working | Properly mapped volume and power buttons. No issues. |
 | **Audio** | 🟨 WIP | LPASS, requires userspace (Pipewire)<br>6x Awinic `aw882xx_smartpa` initialized |
