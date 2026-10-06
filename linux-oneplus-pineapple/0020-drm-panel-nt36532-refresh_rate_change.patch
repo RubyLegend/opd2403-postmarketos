@@ -291,7 +291,7 @@
 +    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_CONTROL_DISPLAY, 0x2c);
 +    	    // Locking CABC in UI mode
 +    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0xb9, 0x00);
-+    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_POWER_SAVE, 0x00); // 0 - off, 1 - ui, 2 - still image, 3 - video
++    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_POWER_SAVE, 0x01); // 0 - off, 1 - ui, 2 - still image, 3 - video
 +    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0xb9, 0x02);
 +    	    // --------
 +    	    mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0x3b,
@@ -2085,12 +2085,12 @@
 +    // if (!pinfo->is_powered_on)
 +    //     return 0;
 + 
-+    //gpiod_set_value_cansleep(pinfo->reset_gpio, 0); // Power OFF
-+    //regulator_bulk_disable(ARRAY_SIZE(nt36532_supplies), pinfo->supplies);
-+    //pinfo->is_powered_on = false;
++    gpiod_set_value_cansleep(pinfo->reset_gpio, 0); // Power OFF
++    regulator_bulk_disable(ARRAY_SIZE(nt36532_supplies), pinfo->supplies);
++    pinfo->is_powered_on = false;
 +    // pinfo->initialized = false;
-+    //dev_info(panel->dev, "NOVA-TRACE: [unprepare] called. Pulling reset pin and disabling power supplies.\n");
-+    dev_info(panel->dev, "NOVA-TRACE: [unprepare] called. Performing bypass. is_powered_on = %d\n", pinfo->is_powered_on);
++    dev_info(panel->dev, "NOVA-TRACE: [unprepare] called. Pulling reset pin and disabling power supplies.\n");
++    //dev_info(panel->dev, "NOVA-TRACE: [unprepare] called. Performing bypass. is_powered_on = %d\n", pinfo->is_powered_on);
      return 0;
  }
  
@@ -2604,7 +2604,7 @@
 +    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_CONTROL_DISPLAY, 0x2c);
 +	// Locking CABC in UI mode
 +    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0xb9, 0x00);
-+    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_POWER_SAVE, 0x00); // 0 - off, 1 - ui, 2 - still image, 3 - video
++    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, MIPI_DCS_WRITE_POWER_SAVE, 0x01); // 0 - off, 1 - ui, 2 - still image, 3 - video
 +    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0xb9, 0x02);
 +	// --------
 +    	mipi_dsi_dual_dcs_write_seq_multi(&dsi_pinfo, dsi0, dsi1, 0x3b,
