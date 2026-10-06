@@ -12,7 +12,9 @@ depends="
 	linux-oneplus-pineapple
 	mkbootimg
 	android-tools
+	agetty
 	postmarketos-base
+	postmarketos-initramfs
 	lz4
 	msm-firmware-loader
 	soc-qcom
@@ -22,11 +24,16 @@ depends="
 	unl0kr-fbforcerefresh
 	make-dynpart-mappings
 	hexagonrpcd
+	i2c-tools
 	firmware-oneplus-pineapple
 	qrtr
 	linux-firmware-ath12k
+	ssc-monitor
+	alsa-ucm-conf
+	fastrpc
+	python3
 "
-makedepends="devicepkg-dev"
+makedepends="devicepkg-dev fastrpc-dev"
 source="
 	deviceinfo
 	modules-initfs
@@ -38,6 +45,8 @@ build() {
 
 package() {
 	devicepkg_package $startdir $pkgname
+        mkdir -p "$pkgdir/etc/systemd/system"
+        ln -s /dev/null "$pkgdir/etc/systemd/system/hexagonrpcd-adsp-sensorspd.service"
 }
 
 sha512sums="
