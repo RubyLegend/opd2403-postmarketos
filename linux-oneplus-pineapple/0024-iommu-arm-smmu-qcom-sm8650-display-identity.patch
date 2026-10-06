@@ -1,0 +1,17 @@
+Subject: [PATCH] iommu/arm-smmu-qcom: use identity default domain for SM8650 MDSS
+
+Add SM8650 MDSS to the existing display-client identity-domain list.
+Retain access to inherited display buffers before native DRM attaches its
+own paging domain, matching the existing handling of other Qualcomm display
+clients. This removed early splash-buffer translation faults in SM8650 tests.
+
+--- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
++++ b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
+@@ -414,6 +414,7 @@
+ 	{ .compatible = "qcom,sm6375-mdss" },
+ 	{ .compatible = "qcom,sm8150-mdss" },
+ 	{ .compatible = "qcom,sm8250-mdss" },
++	{ .compatible = "qcom,sm8650-mdss" },
+ 	{ .compatible = "qcom,x1e80100-mdss" },
+ 	{ }
+ };

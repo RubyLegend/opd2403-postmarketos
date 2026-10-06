@@ -1,0 +1,19 @@
+From: Pad 2 bring-up <bringup@localhost>
+Subject: [DIAGNOSTIC] ath12k: capture firmware crash during WMI startup
+
+The OEM WCN7850 firmware enters RDDM after WMI_INIT, before unified ready.
+The recovery worker skips this stage because QMI_FW_READY_COMPLETE is unset.
+Collect its dump before the failed startup tears down the transport. Keep
+the early recovery guard intact; this is diagnostic, not a recovery fix.
+
+--- a/drivers/net/wireless/ath/ath12k/core.c
++++ b/drivers/net/wireless/ath/ath12k/core.c
+@@ -955,6 +955,8 @@ static int ath12k_core_start(struct ath12k_base *ab)
+ 	if (ret) {
+ 		ath12k_err(ab, "failed to receive wmi unified ready event: %d\n",
+ 			   ret);
++		if (test_bit(ATH12K_FLAG_CRASH_FLUSH, &ab->dev_flags))
++			ath12k_coredump_collect(ab);
+ 		goto err_reo_cleanup;
+ 	}
+ 
