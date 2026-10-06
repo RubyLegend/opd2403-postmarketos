@@ -1,0 +1,24 @@
+--- fakesrc/drivers/power/supply/qcom_battmgr.c	2026-10-04 16:45:58.844002320 +0200
++++ fakesrc/drivers/power/supply/qcom_battmgr.c	2026-10-04 17:42:26.396449449 +0200
+@@ -594,7 +594,10 @@
+ 		val->intval = battmgr->status.voltage_ocv;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CURRENT_NOW:
+-		val->intval = battmgr->status.current_now;
++		if (battmgr->variant == QCOM_BATTMGR_SM8550) 
++			val->intval = -battmgr->status.current_now; // Battery sends inverted data
++		else
++			val->intval = -battmgr->status.current_now;
+ 		break;
+ 	case POWER_SUPPLY_PROP_POWER_NOW:
+ 		val->intval = battmgr->status.power_now;
+@@ -1607,6 +1610,9 @@
+ 				goto out_complete;
+ 		}
+ 
++		if (battmgr->variant == QCOM_BATTMGR_SM8550)
++			battmgr->unit = QCOM_BATTMGR_UNIT_mAh; // Allow reading capacity of a battery
++
+ 		switch (property) {
+ 		case BATT_STATUS:
+ 			battmgr->status.status = le32_to_cpu(resp->intval.value);

@@ -1,0 +1,23 @@
+Subject: [PATCH] drm/panel: nt36532: do not attach vrr_capable from get_modes
+
+get_modes() runs after the DRM device is registered, so creating and
+attaching the connector property there triggers WARNs in
+drm_mode_object_add() and drm_object_attach_property(). The msm DPU
+does not implement VRR either, so the property only advertises an
+unusable capability. The panel keeps its fixed 144 Hz mode.
+
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36532.c
++++ b/drivers/gpu/drm/panel/panel-novatek-nt36532.c
+@@ -526,12 +526,6 @@ static int nt36532_get_modes(struct drm_panel* panel,
+     dev_info(panel->dev, "NOVA-TRACE: [get_modes] called.\n"); 
+     pinfo->connector = connector;
+ 
+-    if (!connector->vrr_capable_property) {
+-        drm_connector_attach_vrr_capable_property(connector);
+-        drm_connector_set_vrr_capable_property(connector, true);
+-        dev_info(panel->dev, "NOVA-TRACE: Attached VRR capable property to connector.\n");
+-    }
+-
+     for (i = 0; i < pinfo->desc->num_modes; i++) {
+         const struct drm_display_mode* m = &pinfo->desc->modes[i];
+         struct drm_display_mode* mode;

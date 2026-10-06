@@ -1,0 +1,17 @@
+Subject: [PATCH] backlight: ktz8866: keep the pre-curve default output
+
+The brightness curve maps backlight levels to hardware values, so the
+default level 1500 now drives the panel at 1764. Default to level 1024,
+which maps to the previous hardware value of 1500.
+
+--- a/drivers/video/backlight/ktz8866.c
++++ b/drivers/video/backlight/ktz8866.c
+@@ -19,7 +19,7 @@
+ #include <linux/of.h>
+ #include <linux/regmap.h>
+ 
+-#define DEFAULT_BRIGHTNESS 1500
++#define DEFAULT_BRIGHTNESS 1024
+ #define MAX_BRIGHTNESS 2047
+ #define REG_MAX 0x15
+ 
