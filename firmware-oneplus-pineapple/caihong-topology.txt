@@ -1,0 +1,18 @@
+Caihong speaker topology
+
+Self-contained ALSA topology source and 12 OEM module configurations from the
+validated audio-oem-scene0-v1-20260927 artifact. Rebuild inside caihong-topology/
+with alsatplg; relative data paths are intentional.
+
+OEM ACDB SHA256:
+4f7be93ab2744d3f694fb4d4af55919128056a5f60067fa25b42793e89c5ecf1
+
+Scene-0 RX/4322 tuning, defaults for the other modules, tagged TDM framing and
+the RX/feedback control link are unchanged. The appended measured RE and
+rotation records have been removed. The machine driver loads the local
+persist calibration and sends RE for indices 0-3 plus rotation 0 before unmute.
+There are no invented RE records for channels 5/6.
+
+The stereo frontend and FE/BE mixer use the pinned AudioReach m4 definitions;
+the archive includes their expanded output, so no generator checkout or capture
+directory is needed at build time. See AUDIO-INVESTIGATION.md for provenance.

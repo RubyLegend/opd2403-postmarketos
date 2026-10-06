@@ -6,19 +6,33 @@ _commit="df876c8f89e0fa493e44cf0c1176c9d2d1acc6f9"
 pkgdesc="Firmware files for OnePlus pineapple and pineapplep"
 url="https://github.com/RubyLegend/firmware-oneplus-pineapple"
 arch="aarch64"
+makedepends="alsa-utils"
 depends="linux-firmware-qcom"
 license="proprietary"
+subpackages="$pkgname-sensors"
 source="
 	$pkgname-$_commit.tar.gz::$url/archive/$_commit.tar.gz 
 	0001-gpu-firmware.files
 	0002-display-firmware.files
 	0003-adsp-cdsp-firmware.files
+	0005-audio-firmware.files
+        caihong-aw882xx_acf.bin
+        caihong-topology.tar.gz
+        caihong-topology.txt
+        caihong-sensors.tar.gz
+        caihong-sensors.txt
 	"
 options="!check !strip !archcheck !spdx !tracedeps pmb:cross-native"
 builddir="$srcdir/firmware-oneplus-pineapple-$_commit"
 
+build() {
+        cd "$srcdir/caihong-topology"
+        ALSA_CONFIG_TPLG="$srcdir/caihong-topology" alsatplg -c topology.conf -o OnePlus-Pad-2-tplg.bin
+}
+
 package() {
 	mkdir -p "$pkgdir/lib/firmware/qcom/sm8650/"
+	mkdir -p "$pkgdir/lib/firmware/qcom/vpu"
 	mkdir -p "$pkgdir/lib/firmware/ath12k/WCN7850/hw2.0/"
 
 	# Installing zap firmware as proprietary
@@ -30,10 +44,35 @@ package() {
 	install -m644 modem_partition/image/cdsp* "$pkgdir/lib/firmware/qcom/sm8650/"
 	# Installing WCN7850 calibration data
 	install -m644 wifi-board-data.bin "$pkgdir/lib/firmware/ath12k/WCN7850/hw2.0/board.bin"
+	# Stock ODM AW88261 profiles, selected by the board audio-channel IDs.
+        install -Dm644 "$srcdir/caihong-aw882xx_acf.bin" \
+                "$pkgdir/lib/firmware/qcom/sm8650/oneplus/caihong/aw882xx_acf.bin"
+        install -Dm644 "$srcdir/caihong-topology/OnePlus-Pad-2-tplg.bin" \
+                "$pkgdir/lib/firmware/qcom/caihong/OnePlus-Pad-2-tplg.bin"
+        install -Dm644 "$srcdir/caihong-topology.txt" \
+                "$pkgdir/usr/share/doc/$pkgname/caihong-topology.txt"
+        install -Dm644 "$srcdir/0005-audio-firmware.files" \
+                "$pkgdir/usr/share/mkinitfs/files/0005-audio-firmware.files"
+	# Installing VPU drivers
+	install -Dm644 "firmware/vpu33_4v.mbn" "$pkgdir/lib/firmware/qcom/vpu/vpu33_p4.mbn"
 
 	install -Dm644 "$srcdir/0001-gpu-firmware.files" "$pkgdir/usr/share/mkinitfs/files/0001-gpu-firmware.files"
 	install -Dm644 "$srcdir/0002-display-firmware.files" "$pkgdir/usr/share/mkinitfs/files/0002-display-firmware.files"
 	install -Dm644 "$srcdir/0003-adsp-cdsp-firmware.files" "$pkgdir/usr/share/mkinitfs/files/0003-adsp-cdsp-firmware.files"
+}
+
+sensors() {
+        pkgdesc="OnePlus Pad 2 OEM sensor configuration and DSP library"
+        depends=""
+        mkdir -p "$subpkgdir/usr/share/qcom/caihong/sensors"
+        cp -a "$srcdir/caihong-sensors/"* "$subpkgdir/usr/share/qcom/caihong/sensors/"
+        # Mainline exposes soc_id/revision, but not these four OEM board fields.
+        for field in hw_platform platform_subtype platform_subtype_id platform_version; do
+                sed -i "s|/sys/devices/soc0/$field\$|/vendor/etc/sensors/socinfo/$field|" \
+                        "$subpkgdir/usr/share/qcom/caihong/sensors/vendor/etc/sensors/sns_reg_config"
+        done
+        install -Dm644 "$srcdir/caihong-sensors.txt" \
+                "$subpkgdir/usr/share/doc/$subpkgname/caihong-sensors.txt"
 }
 
 sha512sums="
@@ -41,4 +80,10 @@ sha512sums="
 dd22390e0ef5053fe19785db48ea7d2e7e580b4e753a01b727badee1d6b37f5e0c9d0a5297f44836e9881e546956f5a86d37ae42a0b706c70c03b805289b3bd0  0001-gpu-firmware.files
 c98052bca14a9677abe86b63567d4f4529a436a83c5fc71a9b26cce05e18f68a4a12e4dbbb82b563a38436da7c932fc2c6a4e0fdd3bc11145d98d4a7615a2eb9  0002-display-firmware.files
 71558da78915dc8c581ecb797f1f03b8572727f153aa7db95425b57668a167f31d5f54be5ef05a204c4a7e4114af8ad8a39c246c8cdaba510da99200c58f830e  0003-adsp-cdsp-firmware.files
+e55224c432f44688c9f6fe2e4748b9bcb09aaf8b38a2938cb9c8588ffa1a13532b06ab7b3ea2cc9bdf76a1c1d288fcae997506a35f1ecdc2beaedae3d715fcaf  0005-audio-firmware.files
+4bd75f4f1d0e77c202d9a56ffe9851453198ca745f2496aff037c0140877f1cb73da0d8e2657434b423e1e4b5d60003f08c5fd1615b85cc6c0e181b5ad6940d5  caihong-aw882xx_acf.bin
+62bf1682b66ed2c75c6bc15cae2eea2f1df271ad2619af33cfa308cd6d4a99cfe53e9417d4c213ba5715dfaa2b638ef6db85f1bc1750478a969e76b4a2a5a0fb  caihong-topology.tar.gz
+fd2239aca400cf7ede7e840aa7e3a9f936ec0c61c619d8a925eb2994149b39f635b7e21431409b5d6940af84e553d2470c300533308890488d033284f478a37f  caihong-topology.txt
+f1f7c3180065eace4996f59333dc947cd14a4581b82e00d8fad0366b19e7e3d3ef2ab84639576cb8dfa95913b44e10b470baa36064e99d96e328934367d116f3  caihong-sensors.tar.gz
+99210dce6cd231ce32534a8b7d4973a078543336eb7c437a80420c4801fa984f82cd6cf21d09b4470ecb5d0b7f5d63432a58c497e30201f674781a1704202aed  caihong-sensors.txt
 "
