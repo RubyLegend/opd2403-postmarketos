@@ -1,6 +1,6 @@
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-02 05:50:37.657071543 +0200
-@@ -0,0 +1,984 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-06 13:08:21.797524327 +0200
+@@ -0,0 +1,1112 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -27,21 +27,11 @@
 +		#size-cells = <2>;
 +		ranges;
 +	
-+	        bootloader_log_mem: botloader_mem@0x81CE4000 {
-+	                reg = <0 0x81CE4000 0 0x00010000>;
-+	                label = "bootloader_log_mem";
-+	        };
-+	
-+		dump_device_info_mem: device_info_mem@0xA4F00000 {
++		dump_device_info_mem: device_info_mem@A4F00000 {
 +			reg = <0 0xA4F00000 0 0x00008000>;
 +			label = "dump_device_info_mem";
 +		};
 +	
-+		gunyah_hyp_mem: gunyah_hyp_region@80000000 {
-+			no-map;
-+			reg = <0x0 0x80000000 0x0 0xe00000>;
-+		};
-+
 +		chipinfo_mem: chipinfo_region@81cf4000 {
 +			no-map;
 +			reg = <0x0 0x81cf4000 0x0 0x1000>;
@@ -201,8 +191,7 @@
 +	};
 +
 +	/* 5. The Simple Framebuffer (Your Screen) */
-+	/* Coordinates pulled from your OEM splash_region */
-+	/*framebuffer: framebuffer@d5100000 {
++	framebuffer: framebuffer@d5100000 {
 +		compatible = "simple-framebuffer";
 +		reg = <0x0 0xd5100000 0x0 0x2b00000>;
 +		width = <3000>;
@@ -210,7 +199,7 @@
 +		stride = <12000>;
 +		format = "a8r8g8b8";
 +		status = "okay";
-+	};*/
++	};
 +
 +	hypervisor: hypervisor {
 +		gh_watchdog: qcom,gh-watchdog { };
@@ -272,163 +261,181 @@
 +		regulator-boot-on;
 +	};
 +
-+	thermal-zones {
-+		skin-temp-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x144>;
++	vreg_dummy_3p3: regulator-dummy-3p3 {
++                compatible = "regulator-fixed";
++                regulator-name = "vreg_nvme_3p3";
++                regulator-min-microvolt = <3300000>;
++                regulator-max-microvolt = <3300000>;
++                enable-active-high;
++                regulator-boot-on;
++        };
 +
-+			trips {
-+				skin_alert: skin-alert {
-+					temperature = <45000>; /* 45C */
-+					hysteresis = <2000>;
-+					type = "passive";
-+				};
-+				skin_crit: skin-crit {
-+					temperature = <60000>; /* 60C */
-+					hysteresis = <2000>;
-+					type = "critical";
-+				};
-+			};
-+
-+			cooling-maps {
-+				/* Tell the kernel to throttle the CPU if the skin gets too hot */
-+				map0 {
-+					trip = <&skin_alert>;
-+					cooling-device = <&cpu7 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-+				};
-+			};
-+		};
-+		cam-flash-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x145>;
-+
-+			trips {
-+				flash_alert: flash-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				flash_crit: flash-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		wlan-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x146>;
-+
-+			trips {
-+				wlan_alert: wlan-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				wlan_crit: wlan-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		rear-tof-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x148>;
-+
-+			trips {
-+				rear_tof_alert: rear-tof-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				rear_tof_crit: rear-tof-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		usb-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x747>;
-+
-+			trips {
-+				usb_alert: usb-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				usb_crit: usb-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		wls-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x749>;
-+
-+			trips {
-+				wls_alert: wls-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				wls_crit: wls-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		svooc-mos-btb-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-governor = "user_space";
-+			thermal-sensors = <&vadc 0x14d>;
-+			wake-capable-sensor;
-+
-+			trips {
-+				svooc_mos_btb_alert: svooc-mos-btb-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				svooc_mos_btb_crit: svooc-mos-btb-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+		batt-thermal {
-+			polling-delay-passive = <250>;
-+			polling-delay = <0>;
-+			thermal-sensors = <&vadc 0x744>;
-+
-+			trips {
-+				batt_alert: batt-alert {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				batt_crit: batt-crit {
-+					temperature = <125000>; /* 125C */
-+					hysteresis = <1000>;
-+					type = "critical";
-+				};
-+			};
-+		};
-+
++	vreg_dummy_0p9: regulator-dummy-0p9 {
++		compatible = "regulator-fixed";
++		regulator-name = "vreg_dummy_0p9";
++		regulator-min-microvolt = <880000>;
++		regulator-max-microvolt = <920000>;
++		enable-active-high;
++		regulator-always-on;
 +	};
++
++	// thermal-zones {
++	// 	// skin-temp-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x144>;
++
++	// 	// 	trips {
++	// 	// 		skin_alert: skin-alert {
++	// 	// 			temperature = <45000>; /* 45C */
++	// 	// 			hysteresis = <2000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		skin_crit: skin-crit {
++	// 	// 			temperature = <60000>; /* 60C */
++	// 	// 			hysteresis = <2000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++
++	// 	// 	cooling-maps {
++	// 	// 		/* Tell the kernel to throttle the CPU if the skin gets too hot */
++	// 	// 		map0 {
++	// 	// 			trip = <&skin_alert>;
++	// 	// 			cooling-device = <&cpu7 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// cam-flash-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x145>;
++
++	// 	// 	trips {
++	// 	// 		flash_alert: flash-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		flash_crit: flash-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// wlan-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x146>;
++
++	// 	// 	trips {
++	// 	// 		wlan_alert: wlan-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		wlan_crit: wlan-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// rear-tof-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x148>;
++
++	// 	// 	trips {
++	// 	// 		rear_tof_alert: rear-tof-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		rear_tof_crit: rear-tof-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// usb-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x747>;
++
++	// 	// 	trips {
++	// 	// 		usb_alert: usb-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		usb_crit: usb-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// wls-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x749>;
++
++	// 	// 	trips {
++	// 	// 		wls_alert: wls-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		wls_crit: wls-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// svooc-mos-btb-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-governor = "user_space";
++	// 	// 	thermal-sensors = <&vadc 0x14d>;
++	// 	// 	wake-capable-sensor;
++
++	// 	// 	trips {
++	// 	// 		svooc_mos_btb_alert: svooc-mos-btb-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		svooc_mos_btb_crit: svooc-mos-btb-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++	// 	// batt-thermal {
++	// 	// 	polling-delay-passive = <250>;
++	// 	// 	polling-delay = <0>;
++	// 	// 	thermal-sensors = <&vadc 0x744>;
++
++	// 	// 	trips {
++	// 	// 		batt_alert: batt-alert {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "passive";
++	// 	// 		};
++	// 	// 		batt_crit: batt-crit {
++	// 	// 			temperature = <125000>; /* 125C */
++	// 	// 			hysteresis = <1000>;
++	// 	// 			type = "critical";
++	// 	// 		};
++	// 	// 	};
++	// 	// };
++
++	// };
 +
 +
 +	wcn7850-pmu {
@@ -517,14 +524,7 @@
 +};
 +
 +&tlmm {
-+    /*
-+     * NOTE: disp0-reset-n (133) and mdp-vsync (86) are already defined
-+     * by your mainline tree, so we skip them here.
-+     */
-+
-+    /* =========================================
-+     * MCU RESET (GPIO 161)
-+     * ========================================= */
++    // MCU RESET (GPIO 161)
 +    ts_reset_active: ts-reset-active-state {
 +        pins = "gpio161";
 +        function = "gpio";
@@ -540,9 +540,7 @@
 +        bias-pull-down;
 +    };
 +
-+    /* =========================================
-+     * MCU INTERRUPT (GPIO 162)
-+     * ========================================= */
++    // MCU INTERRUPT (GPIO 162)
 +    ts_int_active: ts-int-active-state {
 +        pins = "gpio162";
 +        function = "gpio";
@@ -558,9 +556,7 @@
 +        bias-pull-down;
 +    };
 +
-+    /* =========================================
-+     * DSI POWER RESET (GPIO 97)
-+     * ========================================= */
++    // DSI POWER RESET (GPIO 97)
 +    dsi_pw_reset_active: dsi-pw-reset-active-state {
 +        pins = "gpio97";
 +        function = "gpio";
@@ -582,6 +578,34 @@
 +        drive-strength = <16>;
 +        bias-pull-up;
 +        output-high;
++    };
++
++    // Sound card pins
++    caihong_tdm_pins: caihong-tdm-state {
++    	clock-pins {
++    		pins = "gpio121";
++    		function = "i2s1_sck";
++    		drive-strength = <6>;
++    		bias-disable;
++    	};
++    	data-in-pins {
++    		pins = "gpio122";
++    		function = "i2s1_data0";
++    		drive-strength = <6>;
++    		bias-disable;
++    	};
++    	frame-sync-pins {
++    		pins = "gpio123";
++    		function = "i2s1_ws";
++    		drive-strength = <6>;
++    		bias-disable;
++    	};
++    	data-out-pins {
++    		pins = "gpio124";
++    		function = "i2s1_data1";
++    		drive-strength = <6>;
++    		bias-pull-down;
++    	};
 +    };
 +};
 +
@@ -944,6 +968,8 @@
 +};
 +
 +&pcie0 {
++	vdda-supply = <&vreg_dummy_0p9>;
++	vddpe-3v3-supply = <&vreg_dummy_3p3>;
 +	wake-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>,
 +		     <&tlmm 19 GPIO_ACTIVE_HIGH>;
 +};
@@ -984,4 +1010,106 @@
 +        vddrfa1p2-supply = <&vreg_pmu_rfa_1p2>;
 +        vddrfa1p8-supply = <&vreg_pmu_rfa_1p8>;
 +    };
++};
++
++// Sound card
++&{/sound} {
++	compatible = "oneplus,caihong-sndcard";
++	model = "OnePlus-Pad-2";
++	clocks = <&q6prmcc LPASS_CLK_ID_SEC_TDM_IBIT LPASS_CLK_ATTRIBUTE_COUPLE_NO>;
++	clock-names = "tdm-bit";
++	pinctrl-names = "default";
++	pinctrl-0 = <&caihong_tdm_pins>;
++	/delete-property/ audio-routing;
++	/delete-node/ wsa-dai-link;
++
++	secondary-tdm-dai-link {
++		link-name = "Secondary TDM Playback";
++		cpu {
++			sound-dai = <&q6apmbedai SECONDARY_TDM_RX_0>;
++		};
++		codec {
++			sound-dai = <&speaker_amp0>, <&speaker_amp1>,
++				    <&speaker_amp2>, <&speaker_amp3>,
++				    <&speaker_amp5>, <&speaker_amp6>;
++		};
++		platform {
++			sound-dai = <&q6apm>;
++		};
++	};
++};
++
++&swr0 {
++	status = "disabled";
++};
++
++&speaker_amp0 {
++	sound-name-prefix = "Amp0";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++&speaker_amp1 {
++	sound-name-prefix = "Amp1";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++&speaker_amp2 {
++	sound-name-prefix = "Amp2";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++&speaker_amp3 {
++	sound-name-prefix = "Amp3";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++&speaker_amp5 {
++	sound-name-prefix = "Amp5";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++&speaker_amp6 {
++	sound-name-prefix = "Amp6";
++	firmware-name = "qcom/sm8650/oneplus/caihong/aw882xx_acf.bin";
++	awinic,external-monitor;
++};
++
++// Fixing reg allocations
++&gpu {
++	reg = <0x0 0x3d00000 0x0 0x40000>,
++	      <0x0 0x3d9e000 0x0 0x2000>,
++	      <0x0 0x3d61000 0x0 0x3000>; 
++};
++
++&gmu {
++	reg = <0x0 0x3d68000 0x0 0x37000>,
++	      <0x0 0x3d40000 0x0 0x10000>,
++	      <0x0 0xb280000 0x0 0x10000>;
++};
++
++&gpucc {
++	reg = <0x00 0x3d90000 0x00 0x9800>;
++};
++
++// Disable unused PMICs
++// Those PMICs throws errors in CLI during initialization, likely nothing is connected to them.
++&pm8010_m {
++	status = "disabled";
++};
++
++&pm8010_n {
++	status = "disabled";
++};
++
++&pmr735d_k {
++	status = "disabled";
++};
++
++&lpass_vamacro {
++	qcom,dmic-sample-rate = <600000>;
 +};
