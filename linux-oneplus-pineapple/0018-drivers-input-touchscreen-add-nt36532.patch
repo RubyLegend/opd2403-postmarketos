@@ -25,7 +25,7 @@
 +obj-$(CONFIG_TOUCHSCREEN_NOVATEK_NT36532)	+= novatek_nt36532_ts.o
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
 +++ fakesrc/drivers/input/touchscreen/novatek_nt36532_ts.c	2026-09-30 10:21:45.220310481 +0200
-@@ -0,0 +1,2041 @@
+@@ -0,0 +1,2013 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Driver for Novatek NT36532 SPI Touchscreen Controller (No-Flash)
@@ -1874,29 +1874,6 @@
 +    .panel_unpreparing = novatek_ts_panel_unpreparing,
 +};
 +
-+static ssize_t force_fw_reload_store(struct device *dev, struct device_attribute *attr,
-+                                     const char *buf, size_t count)
-+{
-+    struct spi_device *spi = to_spi_device(dev);
-+    struct novatek_ts_data *ts = spi_get_drvdata(spi);
-+    int ret;
-+
-+    dev_info(dev, "Manual firmware reload triggered via sysfs\n");
-+
-+    disable_irq_nosync(ts->spi->irq);
-+    novatek_ts_power_on(ts);
-+
-+    ret = novatek_fw_load(ts);
-+    if (ret)
-+        dev_err(dev, "Manual fw reload failed: %d\n", ret);
-+
-+    enable_irq(ts->spi->irq);
-+
-+    return count;
-+}
-+
-+static DEVICE_ATTR_WO(force_fw_reload);
-+
 +static int novatek_ts_probe(struct spi_device* spi)
 +{
 +    struct device* dev = &spi->dev;
@@ -1920,10 +1897,6 @@
 +    spi_set_drvdata(spi, ts);
 +
 +    INIT_WORK(&ts->fw_load_work, novatek_ts_fw_load_worker);
-+
-+    error = device_create_file(dev, &dev_attr_force_fw_reload);
-+    if (error)
-+        dev_warn(dev, "Failed to create sysfs force_fw_reload node\n");
 +
 +    /* SPI Bus Configuration */
 +    spi->mode = SPI_MODE_0;
@@ -2000,7 +1973,6 @@
 +{
 +    struct novatek_ts_data* ts = spi_get_drvdata(spi);
 +
-+    device_remove_file(&spi->dev, &dev_attr_force_fw_reload);
 +    drm_panel_remove_follower(&ts->panel_follower);
 +    cancel_work_sync(&ts->fw_load_work);
 +
