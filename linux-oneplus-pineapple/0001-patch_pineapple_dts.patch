@@ -1,6 +1,6 @@
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-06 13:08:21.797524327 +0200
-@@ -0,0 +1,1112 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-06 19:36:18.013942410 +0200
+@@ -0,0 +1,1109 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -30,11 +30,6 @@
 +		dump_device_info_mem: device_info_mem@A4F00000 {
 +			reg = <0 0xA4F00000 0 0x00008000>;
 +			label = "dump_device_info_mem";
-+		};
-+	
-+		chipinfo_mem: chipinfo_region@81cf4000 {
-+			no-map;
-+			reg = <0x0 0x81cf4000 0x0 0x1000>;
 +		};
 +	
 +		qseecom_mem: qseecom_region {
@@ -164,16 +159,6 @@
 +		    pmsg-size = <0x200000>;
 +		};
 +
-+		demura_region_0 {
-+			label = "demura hfc region 0";
-+			reg = <0x00 0x00 0x00 0x00>;
-+		};
-+		
-+		demura_region_1 {
-+			label = "demura hfc region 1";
-+			reg = <0x00 0x00 0x00 0x00>;
-+		};
-+
 +		splash_region {
 +			label = "cont_splash_region";
 +			reg = <0x00 0xd5100000 0x00 0x2b00000>;
@@ -202,7 +187,33 @@
 +	};
 +
 +	hypervisor: hypervisor {
-+		gh_watchdog: qcom,gh-watchdog { };
++		#address-cells = <2>;
++		#size-cells = <0>;
++		compatible = "qcom,gunyah-hypervisor-1.0", "qcom,gunyah-hypervisor", "simple-bus";
++		name = "hypervisor";
++
++		gh_watchdog: qcom,gh-watchdog {
++			compatible = "qcom,gh-watchdog";
++		};
++
++		gunyah_vm: qcom,gunyah-vm {
++			compatible = "qcom,gunyah-vm-id-1.0", "qcom,gunyah-vm-i";
++			qcom,vmid = <3>;
++			qcom,vendor = "Qualcomm";
++		};
++
++		gunyah_resource_manager: qcom,resource-manager-rpc@516ed6657bae360a {
++			compatible = "gunyah-resource-manager", "qcom,resource-manager-1-0", "qcom,resource-manager", "qcom,gunyah-message-queue", "qcom,gunyah-capability";
++			reg = <0x516ed665 0x7bae360a 0x516ed665 0x7baec896>;
++			interrupts = <928 IRQ_TYPE_EDGE_RISING>, // TX full IRQ
++				     <929 IRQ_TYPE_EDGE_RISING>; // RX empty IRQ
++			qcom,free-irq-start = <0x3c0>;
++			qcom,is-full-duplex;
++			qcom,tx-message-size = <0xf0>;
++			qcom,rx-message-size = <0xf0>;
++			qcom,tx-queue-depth = <0x08>;
++			qcom,rx-queue-depth = <0x08>;
++		};
 +	};
 +
 +	arch_timer: timer { };
@@ -273,8 +284,8 @@
 +	vreg_dummy_0p9: regulator-dummy-0p9 {
 +		compatible = "regulator-fixed";
 +		regulator-name = "vreg_dummy_0p9";
-+		regulator-min-microvolt = <880000>;
-+		regulator-max-microvolt = <920000>;
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <900000>;
 +		enable-active-high;
 +		regulator-always-on;
 +	};
@@ -471,20 +482,6 @@
 +};
 +
 +&soc {
-+	
-+	bootloader_log {
-+		compatible = "bootloader_log";
-+		linux,contiguous-region = <&bootloader_log_mem>;
-+	};
-+
-+	dump_device_info {
-+		compatible = "dump_device_info";
-+		linux,contiguous-region = <&dump_device_info_mem>;
-+	};
-+
-+	// OPlus customs :)
-+	// Will investigate it someday, maybe it's something useful...
-+
 +	oplus_secure_common {
 +		compatible = "oplus,secure_common";
 +		oplus,sec_reg_num = <0x221C8C70>;
@@ -968,8 +965,8 @@
 +};
 +
 +&pcie0 {
-+	vdda-supply = <&vreg_dummy_0p9>;
-+	vddpe-3v3-supply = <&vreg_dummy_3p3>;
++	// vdda-supply = <&vreg_dummy_0p9>;
++	// vddpe-3v3-supply = <&vreg_dummy_3p3>;
 +	wake-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>,
 +		     <&tlmm 19 GPIO_ACTIVE_HIGH>;
 +};
@@ -1080,21 +1077,21 @@
 +};
 +
 +// Fixing reg allocations
-+&gpu {
-+	reg = <0x0 0x3d00000 0x0 0x40000>,
-+	      <0x0 0x3d9e000 0x0 0x2000>,
-+	      <0x0 0x3d61000 0x0 0x3000>; 
-+};
-+
-+&gmu {
-+	reg = <0x0 0x3d68000 0x0 0x37000>,
-+	      <0x0 0x3d40000 0x0 0x10000>,
-+	      <0x0 0xb280000 0x0 0x10000>;
-+};
-+
-+&gpucc {
-+	reg = <0x00 0x3d90000 0x00 0x9800>;
-+};
++// &gpu {
++// 	reg = <0x0 0x3d00000 0x0 0x40000>,
++// 	      <0x0 0x3d9e000 0x0 0x2000>,
++// 	      <0x0 0x3d61000 0x0 0x3000>; 
++// };
++// 
++// &gmu {
++// 	reg = <0x0 0x3d68000 0x0 0x37000>,
++// 	      <0x0 0x3d40000 0x0 0x10000>,
++// 	      <0x0 0xb280000 0x0 0x10000>;
++// };
++// 
++// &gpucc {
++// 	reg = <0x00 0x3d90000 0x00 0x9800>;
++// };
 +
 +// Disable unused PMICs
 +// Those PMICs throws errors in CLI during initialization, likely nothing is connected to them.
