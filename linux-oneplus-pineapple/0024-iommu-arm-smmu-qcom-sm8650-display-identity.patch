@@ -8,9 +8,9 @@ clients. This removed early splash-buffer translation faults in SM8650 tests.
 --- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
 +++ b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
 @@ -414,6 +414,7 @@
- 	{ .compatible = "qcom,sm6375-mdss" },
  	{ .compatible = "qcom,sm8150-mdss" },
  	{ .compatible = "qcom,sm8250-mdss" },
+ 	{ .compatible = "qcom,sm8450-mdss" },
 +	{ .compatible = "qcom,sm8650-mdss" },
  	{ .compatible = "qcom,x1e80100-mdss" },
  	{ }
