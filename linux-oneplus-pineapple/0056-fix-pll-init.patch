@@ -1,0 +1,126 @@
+From 93c97bc8d85d5742d6f000d8bf3eeeb705bc6082 Mon Sep 17 00:00:00 2001
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Mon, 27 Oct 2025 14:09:48 +0100
+Subject: [PATCH] drm/msm: dsi: fix PLL init in bonded mode
+
+When in bonded DSI mode, only one PLL in one DSI PHY is used for both
+DSI PHYs, meaning that parents of the secondary DSI PHY will use the
+primary DSI PHY PLL as parent.
+
+In this case the primary DSI PHY PLL will be set even if the primary
+DSI PHY is not yet enabled. The DSI PHY code has support for this
+particular use-case and will handle the fact the PLL was already
+set when initializing the primary DSI PHY.
+
+By introducing a protected variable pll_enable_cnt in the commit
+cb55f39bf7b1 ("drm/msm/dsi/phy: Fix reading zero as PLL rates when unprepared"),
+this variable is only initially set to 1 when the DSI PHY is initialized
+making it impossible to set the PLL before, breaking the bonded DSI
+use case by returning 0 when setting the PLL from the secondary DSI
+PHY driver and skipping the correct clocks initialization.
+
+But since it was already possible to set the PLL without enabling
+the DSI PHY, just drop the pll_enable_cnt setting from the PHY
+enable/disable and simply increment/decrement the pll_enable_cnt
+variable from the dsi_pll_enable/disable_pll_bias to make sure any
+PLL operation is done with the PLL BIAS enabled.
+
+Fixes: cb55f39bf7b1 ("drm/msm/dsi/phy: Fix reading zero as PLL rates when unprepared")
+Closes: https://lore.kernel.org/all/50a49d72-2b1e-471d-b0c4-d5a0b38b2a21@linaro.org/
+Tested-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+Reviewed-by: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+Patchwork: https://patchwork.freedesktop.org/patch/683688/
+Link: https://lore.kernel.org/r/20251027-topic-sm8x50-fix-dsi-bonded-v1-1-a477cd3f907d@linaro.org
+Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+---
+ drivers/gpu/drm/msm/dsi/phy/dsi_phy.h     |  1 -
+ drivers/gpu/drm/msm/dsi/phy/dsi_phy_7nm.c | 18 ++----------------
+ 2 files changed, 2 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/gpu/drm/msm/dsi/phy/dsi_phy.h b/drivers/gpu/drm/msm/dsi/phy/dsi_phy.h
+index e391505fdaf040..3cbf0823149249 100644
+--- a/drivers/gpu/drm/msm/dsi/phy/dsi_phy.h
++++ b/drivers/gpu/drm/msm/dsi/phy/dsi_phy.h
+@@ -109,7 +109,6 @@ struct msm_dsi_phy {
+ 	struct msm_dsi_dphy_timing timing;
+ 	const struct msm_dsi_phy_cfg *cfg;
+ 	void *tuning_cfg;
+-	void *pll_data;
+ 
+ 	enum msm_dsi_phy_usecase usecase;
+ 	bool regulator_ldo_mode;
+diff --git a/drivers/gpu/drm/msm/dsi/phy/dsi_phy_7nm.c b/drivers/gpu/drm/msm/dsi/phy/dsi_phy_7nm.c
+index 32f06edd21a9f1..c5e1d2016bcca2 100644
+--- a/drivers/gpu/drm/msm/dsi/phy/dsi_phy_7nm.c
++++ b/drivers/gpu/drm/msm/dsi/phy/dsi_phy_7nm.c
+@@ -426,11 +426,8 @@ static void dsi_pll_enable_pll_bias(struct dsi_pll_7nm *pll)
+ 	u32 data;
+ 
+ 	spin_lock_irqsave(&pll->pll_enable_lock, flags);
+-	if (pll->pll_enable_cnt++) {
+-		spin_unlock_irqrestore(&pll->pll_enable_lock, flags);
+-		WARN_ON(pll->pll_enable_cnt == INT_MAX);
+-		return;
+-	}
++	pll->pll_enable_cnt++;
++	WARN_ON(pll->pll_enable_cnt == INT_MAX);
+ 
+ 	data = readl(pll->phy->base + REG_DSI_7nm_PHY_CMN_CTRL_0);
+ 	data |= DSI_7nm_PHY_CMN_CTRL_0_PLL_SHUTDOWNB;
+@@ -876,7 +873,6 @@ static int dsi_pll_7nm_init(struct msm_dsi_phy *phy)
+ 	spin_lock_init(&pll_7nm->pll_enable_lock);
+ 
+ 	pll_7nm->phy = phy;
+-	phy->pll_data = pll_7nm;
+ 
+ 	ret = pll_7nm_register(pll_7nm, phy->provided_clocks->hws);
+ 	if (ret) {
+@@ -965,10 +961,8 @@ static int dsi_7nm_phy_enable(struct msm_dsi_phy *phy,
+ 	u32 const delay_us = 5;
+ 	u32 const timeout_us = 1000;
+ 	struct msm_dsi_dphy_timing *timing = &phy->timing;
+-	struct dsi_pll_7nm *pll = phy->pll_data;
+ 	void __iomem *base = phy->base;
+ 	bool less_than_1500_mhz;
+-	unsigned long flags;
+ 	u32 vreg_ctrl_0, vreg_ctrl_1, lane_ctrl0;
+ 	u32 glbl_pemph_ctrl_0;
+ 	u32 glbl_str_swi_cal_sel_ctrl, glbl_hstx_str_ctrl_0;
+@@ -1090,13 +1084,10 @@ static int dsi_7nm_phy_enable(struct msm_dsi_phy *phy,
+ 		glbl_rescode_bot_ctrl = 0x3c;
+ 	}
+ 
+-	spin_lock_irqsave(&pll->pll_enable_lock, flags);
+-	pll->pll_enable_cnt = 1;
+ 	/* de-assert digital and pll power down */
+ 	data = DSI_7nm_PHY_CMN_CTRL_0_DIGTOP_PWRDN_B |
+ 	       DSI_7nm_PHY_CMN_CTRL_0_PLL_SHUTDOWNB;
+ 	writel(data, base + REG_DSI_7nm_PHY_CMN_CTRL_0);
+-	spin_unlock_irqrestore(&pll->pll_enable_lock, flags);
+ 
+ 	/* Assert PLL core reset */
+ 	writel(0x00, base + REG_DSI_7nm_PHY_CMN_PLL_CNTRL);
+@@ -1209,9 +1200,7 @@ static bool dsi_7nm_set_continuous_clock(struct msm_dsi_phy *phy, bool enable)
+ 
+ static void dsi_7nm_phy_disable(struct msm_dsi_phy *phy)
+ {
+-	struct dsi_pll_7nm *pll = phy->pll_data;
+ 	void __iomem *base = phy->base;
+-	unsigned long flags;
+ 	u32 data;
+ 
+ 	DBG("");
+@@ -1238,11 +1227,8 @@ static void dsi_7nm_phy_disable(struct msm_dsi_phy *phy)
+ 	writel(data, base + REG_DSI_7nm_PHY_CMN_CTRL_0);
+ 	writel(0, base + REG_DSI_7nm_PHY_CMN_LANE_CTRL0);
+ 
+-	spin_lock_irqsave(&pll->pll_enable_lock, flags);
+-	pll->pll_enable_cnt = 0;
+ 	/* Turn off all PHY blocks */
+ 	writel(0x00, base + REG_DSI_7nm_PHY_CMN_CTRL_0);
+-	spin_unlock_irqrestore(&pll->pll_enable_lock, flags);
+ 
+ 	/* make sure phy is turned off */
+ 	wmb();
+

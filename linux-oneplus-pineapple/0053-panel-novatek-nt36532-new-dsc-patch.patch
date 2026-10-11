@@ -1,0 +1,19 @@
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-10-03 21:17:43.488717184 +0200
++++ a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-10-06 16:32:02.944955405 +0200
+@@ -843,7 +843,6 @@
+         pinfo->dsi[i]->format = pinfo->desc->format;
+         pinfo->dsi[i]->mode_flags = pinfo->desc->mode_flags;
+         pinfo->dsi[i]->dsc = pinfo->desc->dsc_cfg;
+-        pinfo->dsi[i]->dsc_slice_per_pkt = dsc_slice_per_pkt; // pinfo->desc->dsc_slice_per_pkt;
+         pinfo->dsi[i]->hs_rate = pinfo->desc->hs_rate;
+ 
+         ret = devm_mipi_dsi_attach(dev, pinfo->dsi[i]);
+@@ -1213,7 +1212,7 @@
+     .bpc = 8,
+     .lanes = 4,
+     .format = MIPI_DSI_FMT_RGB888,
+-    .mode_flags = MIPI_DSI_MODE_VIDEO /*| MIPI_DSI_CLOCK_NON_CONTINUOUS*/ | MIPI_DSI_MODE_LPM,
++    .mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_DSC_ALL_SLICES_IN_PKT,
+     .modes = csot_display_modes,
+     .num_modes = ARRAY_SIZE(csot_display_modes),
+     .dsc_slice_per_pkt = 2,
