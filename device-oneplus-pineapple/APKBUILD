@@ -37,6 +37,7 @@ makedepends="devicepkg-dev fastrpc-dev"
 source="
 	deviceinfo
 	modules-initfs
+	99-watchdog.conf
 "
 
 build() {
@@ -45,11 +46,16 @@ build() {
 
 package() {
 	devicepkg_package $startdir $pkgname
-        mkdir -p "$pkgdir/etc/systemd/system"
+        # Mask sensorspd service until stabilization
+	mkdir -p "$pkgdir/etc/systemd/system"
         ln -s /dev/null "$pkgdir/etc/systemd/system/hexagonrpcd-adsp-sensorspd.service"
+	# Add watchdog monitoring to systemd
+	mkdir -p "$pkgdir/etc/systemd/system.conf.d"
+	cp "$srcdir/99-watchdog.conf" "$pkgdir/etc/systemd/system.conf.d"
 }
 
 sha512sums="
-fedeff6664fbb52a4464a9c68d4b40efa6c4b08337bef57f01abe866ade661f40d1608263b2110481dca883a0bddf785559a6a053c1d05b483b20a11898ca053  deviceinfo
+ae4a40c2002f554e70b88e1eff19b3778d1714a8de97e9918bb9b0f4958388813dc7c5d7deeb480ff53c5bd2c9ca02c659824c39cd8c6b7c590ea7ab55903f29  deviceinfo
 9cce102d1ce5e4ad67249c863d1f6c7c47bb063e77dc430c9aa20a5e6c97cc058564f7326d3e14883c28e502518a50093d8847bc813130f32e5b28eda4460702  modules-initfs
+a81268c4404d358a227baf3c14be47a2cdb52aca84995b9d4988db587e8fb972ff098dc2da7aa46fa6fef35995dfa547f01f980257f053d3af2b76935d11abc3  99-watchdog.conf
 "

@@ -1,0 +1,196 @@
+--- fakesrc/drivers/watchdog/gunyah_wdt.c	2026-10-11 13:49:18.217444079 +0200
++++ fakesrc/drivers/watchdog/gunyah_wdt.c	2026-10-11 15:14:31.190803005 +0200
+@@ -10,6 +10,9 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/watchdog.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/soc/qcom/smem.h>
+ 
+ #define GUNYAH_WDT_SMCCC_CALL_VAL(func_id) \
+ 	ARM_SMCCC_CALL_VAL(ARM_SMCCC_FAST_CALL, ARM_SMCCC_SMC_32,\
+@@ -68,6 +71,8 @@
+ 	struct device *dev = wdd->parent;
+ 	int ret;
+ 
++	dev_info(dev, "Gunyah WDT: Start.\n");
++
+ 	ret = gunyah_wdt_call(GUNYAH_WDT_CONTROL, WDT_CTRL_DISABLE, 0);
+ 	if (ret && watchdog_active(wdd)) {
+ 		dev_err(dev, "%s: Failed to stop gunyah wdt %d\n", __func__, ret);
+@@ -91,11 +96,13 @@
+ 
+ static int gunyah_wdt_stop(struct watchdog_device *wdd)
+ {
++	dev_info(wdd->parent, "Gunyah stop.\n");
+ 	return gunyah_wdt_call(GUNYAH_WDT_CONTROL, WDT_CTRL_DISABLE, 0);
+ }
+ 
+ static int gunyah_wdt_ping(struct watchdog_device *wdd)
+ {
++	dev_info(wdd->parent, "Gunyah ping.\n");
+ 	return gunyah_wdt_call(GUNYAH_WDT_PING, 0, 0);
+ }
+ 
+@@ -103,6 +110,7 @@
+ 				  unsigned int timeout_sec)
+ {
+ 	wdd->timeout = timeout_sec;
++	dev_info(wdd->parent, "Gunyah set timeout.\n");
+ 
+ 	if (watchdog_active(wdd))
+ 		return gunyah_wdt_start(wdd);
+@@ -126,6 +134,7 @@
+ 	int seconds_since_last_ping;
+ 
+ 	seconds_since_last_ping = gunyah_wdt_get_time_since_last_ping();
++	dev_info(wdd->parent, "Gunyah time since last ping: %d.\n", seconds_since_last_ping);
+ 	if (seconds_since_last_ping < 0 ||
+ 	    seconds_since_last_ping > wdd->timeout)
+ 		return 0;
+@@ -136,6 +145,7 @@
+ static int gunyah_wdt_restart(struct watchdog_device *wdd,
+ 			      unsigned long action, void *data)
+ {
++	dev_info(wdd->parent, "Gunyah restart.\n");
+ 	/* Set timeout to 1ms and send a ping */
+ 	gunyah_wdt_call(GUNYAH_WDT_CONTROL, WDT_CTRL_DISABLE, 0);
+ 	gunyah_wdt_call(GUNYAH_WDT_SET_TIME, 1, 1);
+@@ -165,12 +175,104 @@
+ 	.restart = gunyah_wdt_restart
+ };
+ 
++#define SBL_MINIDUMP_SMEM_ID	602
++#define MD_REGION_VALID		('V' << 24 | 'A' << 16 | 'L' << 8 | 'I' << 0)
++#define MD_SS_ENCR_NOTREQ	(0 << 24 | 0 << 16 | 'N' << 8 | 'R' << 0)
++#define MD_SS_ENCR_DONE		('D' << 24 | 'O' << 16 | 'N' << 8 | 'E' << 0)
++#define MD_SS_ENABLED		('E' << 24 | 'N' << 16 | 'B' << 8 | 'L' << 0)
++
++struct md_ss_region {
++	char	name[16];
++	u32	seq_num;
++	u32	md_valid;
++	u64	region_base_address;
++	u64	region_size;
++};
++
++struct md_ss_toc {
++	u32	md_ss_toc_init;
++	u32	md_ss_enable_status;
++	u32	encryption_status;
++	u32	encryption_required;
++	u32	ss_region_count;
++	u64	md_ss_smem_regions_baseptr;
++};
++
++struct md_global_toc {
++	u32		md_toc_init;
++	u32		md_revision;
++	u32		md_enable_status;
++	struct md_ss_toc md_ss_toc[];
++};
++
++static void md_set_region(struct md_ss_region *r, const char *name,
++			  phys_addr_t base, size_t size)
++{
++	strscpy(r->name, name, sizeof(r->name));
++	r->md_valid = MD_REGION_VALID;
++	r->region_base_address = base;
++	r->region_size = size;
++}
++
++static void pad2_minidump_register(struct work_struct *work);
++static DECLARE_DELAYED_WORK(pad2_minidump_work, pad2_minidump_register);
++static int pad2_minidump_tries;
++
++static void pad2_minidump_register(struct work_struct *work)
++{
++	struct md_global_toc *gtoc;
++	struct md_ss_region *regions;
++	struct md_ss_toc *toc;
++	struct device_node *np;
++	struct resource res;
++	int n = 0;
++
++	/* SMEM probes after late_initcall */
++	gtoc = qcom_smem_get(QCOM_SMEM_HOST_ANY, SBL_MINIDUMP_SMEM_ID, NULL);
++	if (PTR_ERR(gtoc) == -EPROBE_DEFER && ++pad2_minidump_tries < 60) {
++		schedule_delayed_work(&pad2_minidump_work, HZ / 2);
++		return;
++	}
++	if (IS_ERR(gtoc)) {
++		pr_err("smem item %d: %ld\n", SBL_MINIDUMP_SMEM_ID, PTR_ERR(gtoc));
++		return;
++	}
++	if (!gtoc->md_toc_init) {
++		pr_err("minidump table not initialized by firmware\n");
++		return;
++	}
++
++	/* the firmware reads this array by physical address */
++	regions = kcalloc(2, sizeof(*regions), GFP_KERNEL);
++	if (!regions)
++		return;
++
++	md_set_region(&regions[n++], "KLOGBUF", virt_to_phys(log_buf_addr_get()),
++		      log_buf_len_get());
++	np = of_find_compatible_node(NULL, NULL, "ramoops");
++	if (np && !of_address_to_resource(np, 0, &res))
++		md_set_region(&regions[n++], "KRAMOOPS", res.start,
++			      resource_size(&res));
++	of_node_put(np);
++
++	toc = &gtoc->md_ss_toc[0];
++	toc->encryption_status = MD_SS_ENCR_DONE;
++	toc->encryption_required = MD_SS_ENCR_NOTREQ;
++	toc->md_ss_smem_regions_baseptr = virt_to_phys(regions);
++	toc->ss_region_count = n;
++	toc->md_ss_toc_init = 1;
++	toc->md_ss_enable_status = MD_SS_ENABLED;
++	pr_info("registered %d regions\n", n);
++}
++
+ static int gunyah_wdt_probe(struct platform_device *pdev)
+ {
+ 	struct watchdog_device *wdd;
+ 	struct device *dev = &pdev->dev;
+ 	int ret;
+ 
++	dev_info(dev, "Gunyah watchdog probe called.\n");
++
+ 	ret = gunyah_wdt_call(GUNYAH_WDT_STATUS, 0, 0);
+ 	if (ret == -EOPNOTSUPP)
+ 		return -ENODEV;
+@@ -198,6 +300,7 @@
+ 	gunyah_wdt_stop(wdd);
+ 	platform_set_drvdata(pdev, wdd);
+ 	watchdog_set_restart_priority(wdd, 0);
++	schedule_delayed_work(&pad2_minidump_work, 0);
+ 
+ 	return devm_watchdog_register_device(dev, wdd);
+ }
+@@ -206,12 +309,15 @@
+ {
+ 	struct watchdog_device *wdd = platform_get_drvdata(pdev);
+ 
++	dev_info(wdd->parent, "Gunyah remove.\n");
++
+ 	gunyah_wdt_stop(wdd);
+ }
+ 
+ static int gunyah_wdt_suspend(struct device *dev)
+ {
+ 	struct watchdog_device *wdd = dev_get_drvdata(dev);
++	dev_info(wdd->parent, "Gunyah suspend.\n");
+ 
+ 	if (watchdog_active(wdd))
+ 		gunyah_wdt_stop(wdd);
+@@ -222,6 +328,7 @@
+ static int gunyah_wdt_resume(struct device *dev)
+ {
+ 	struct watchdog_device *wdd = dev_get_drvdata(dev);
++	dev_info(wdd->parent, "Gunyah resume.\n");
+ 
+ 	if (watchdog_active(wdd))
+ 		gunyah_wdt_start(wdd);

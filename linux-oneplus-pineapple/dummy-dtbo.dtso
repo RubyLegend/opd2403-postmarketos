@@ -3,7 +3,7 @@
 
 / {
     model = "OnePlus Pad 2 Overlay";
-    compatible = "qcom,pineapple-mtp", "qcom,pineapple", "qcom,pineapplep", "qcom,pineapplep-mtp", "qcom,mtp", "qcom,sm8650";
+    compatible = "qcom,pineapple-mtp", "qcom,pineapple", "qcom,pineapplep", "qcom,pineapplep-mtp", "qcom,mtp", "qcom,sm8650", "oneplus,pad2";
 
     qcom,msm-id = <557 0x20000 577 0x20000>;
     qcom,board-id = <8 0>;

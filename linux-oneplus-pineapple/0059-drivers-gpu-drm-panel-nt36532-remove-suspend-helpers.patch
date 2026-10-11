@@ -1,0 +1,34 @@
+--- a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-10-08 12:19:00.658860707 +0200
++++ a/drivers/gpu/drm/panel/panel-novatek-nt36532.c	2026-10-11 15:44:38.311781839 +0200
+@@ -612,23 +612,6 @@
+     .get_orientation = nt36532_get_orientation,
+ };
+ 
+-static int nt36532_system_suspend(struct device *dev)
+-{
+-    struct panel_info *pinfo = dev_get_drvdata(dev);
+-    dev_info(pinfo->panel.dev, "NOVA-TRACE: [system_suspend] called. Powering down gpio and regulators.\n");
+-
+-    /* Fully cut power only during system sleep to save battery */
+-    // if (pinfo->is_powered_on) {
+-    gpiod_set_value_cansleep(pinfo->reset_gpio, 0); // Power OFF
+-    regulator_bulk_disable(ARRAY_SIZE(nt36532_supplies), pinfo->supplies);
+-    pinfo->is_powered_on = false;
+-    // pinfo->initialized = false;
+-    // }
+-    return 0;
+-}
+-
+-static DEFINE_SIMPLE_DEV_PM_OPS(nt36532_pm_ops, nt36532_system_suspend, NULL);
+-
+ 
+ static int nt36532_bl_update_status(struct backlight_device* bl)
+ {
+@@ -1268,7 +1251,6 @@
+     .driver = {
+         .name = "panel-novatek-nt36532",
+         .of_match_table = nt36532_of_match,
+-	.pm = pm_sleep_ptr(&nt36532_pm_ops),
+     },
+ };
+ module_mipi_dsi_driver(nt36532_driver);

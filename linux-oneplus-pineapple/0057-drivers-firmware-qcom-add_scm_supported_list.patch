@@ -1,0 +1,10 @@
+--- fakesrc/drivers/firmware/qcom/qcom_scm.c	2026-10-11 12:48:16.644911466 +0200
++++ fakesrc/drivers/firmware/qcom/qcom_scm.c	2026-10-11 12:50:42.041818884 +0200
+@@ -2335,6 +2335,7 @@
+ 	{ .compatible = "qcom,x1e80100-crd" },
+ 	{ .compatible = "qcom,x1e80100-qcp" },
+ 	{ .compatible = "qcom,x1p42100-crd" },
++	{ .compatible = "oneplus,pad2" },
+ 	{ }
+ };
+ 
