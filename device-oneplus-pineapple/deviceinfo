@@ -16,7 +16,7 @@ deviceinfo_external_storage="false"
 
 # Bootloader related
 deviceinfo_flash_method="fastboot"
-deviceinfo_kernel_cmdline="console=tty0 loglevel=8 panic=5 msm.dpu_use_virtual_planes=1 pmos_debug_shell quiet splash"
+deviceinfo_kernel_cmdline="console=tty0 loglevel=8 kernel.panic=5 msm.dpu_use_virtual_planes=1 qcom_scm.download_mode=mini qcom_scm.minidump_dest=usb quiet splash"
 deviceinfo_generate_bootimg="true"
 deviceinfo_flash_pagesize="4096"
 deviceinfo_bootimg_qcdt="false"
