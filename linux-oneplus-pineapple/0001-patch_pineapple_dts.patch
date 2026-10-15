@@ -1,6 +1,6 @@
 --- /dev/null	2026-09-24 15:34:28.681420201 +0200
-+++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-06 19:36:18.013942410 +0200
-@@ -0,0 +1,1109 @@
++++ fakesrc/arch/arm64/boot/dts/qcom/sm8650-oneplus-caihong.dts	2026-10-15 15:05:49.488888617 +0200
+@@ -0,0 +1,1103 @@
 +/dts-v1/;
 +#include "sm8650-mtp.dts"
 +#include <dt-bindings/input/input.h>
@@ -11,7 +11,7 @@
 +	#address-cells = <0x02>;
 +	#size-cells = <0x02>;
 +	model = "Qualcomm Technologies, Inc. Pineapple MTP,caihong";
-+	compatible = "qcom,pineapple-mtp", "qcom,pineapple", "qcom,pineapplep-mtp", "qcom,pineapplep", "qcom,mtp", "qcom,sm8650";
++	compatible = "qcom,pineapple-mtp", "qcom,pineapple", "qcom,pineapplep-mtp", "qcom,pineapplep", "qcom,mtp", "qcom,sm8650", "oneplus,pad2";
 +	//compatible = "qcom,pineapplep";
 +	// <557 0x20000>
 +	qcom,msm-id = <557 0x20000 577 0x20000>;
@@ -272,23 +272,23 @@
 +		regulator-boot-on;
 +	};
 +
-+	vreg_dummy_3p3: regulator-dummy-3p3 {
-+                compatible = "regulator-fixed";
-+                regulator-name = "vreg_nvme_3p3";
-+                regulator-min-microvolt = <3300000>;
-+                regulator-max-microvolt = <3300000>;
-+                enable-active-high;
-+                regulator-boot-on;
-+        };
++	// vreg_dummy_3p3: regulator-dummy-3p3 {
++        //         compatible = "regulator-fixed";
++        //         regulator-name = "vreg_nvme_3p3";
++        //         regulator-min-microvolt = <3300000>;
++        //         regulator-max-microvolt = <3300000>;
++        //         enable-active-high;
++        //         regulator-boot-on;
++        // };
 +
-+	vreg_dummy_0p9: regulator-dummy-0p9 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vreg_dummy_0p9";
-+		regulator-min-microvolt = <900000>;
-+		regulator-max-microvolt = <900000>;
-+		enable-active-high;
-+		regulator-always-on;
-+	};
++	// vreg_dummy_0p9: regulator-dummy-0p9 {
++	// 	compatible = "regulator-fixed";
++	// 	regulator-name = "vreg_dummy_0p9";
++	// 	regulator-min-microvolt = <900000>;
++	// 	regulator-max-microvolt = <900000>;
++	// 	enable-active-high;
++	// 	regulator-always-on;
++	// };
 +
 +	// thermal-zones {
 +	// 	// skin-temp-thermal {
@@ -965,8 +965,6 @@
 +};
 +
 +&pcie0 {
-+	// vdda-supply = <&vreg_dummy_0p9>;
-+	// vddpe-3v3-supply = <&vreg_dummy_3p3>;
 +	wake-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>,
 +		     <&tlmm 19 GPIO_ACTIVE_HIGH>;
 +};
@@ -1076,37 +1074,33 @@
 +	awinic,external-monitor;
 +};
 +
-+// Fixing reg allocations
-+// &gpu {
-+// 	reg = <0x0 0x3d00000 0x0 0x40000>,
-+// 	      <0x0 0x3d9e000 0x0 0x2000>,
-+// 	      <0x0 0x3d61000 0x0 0x3000>; 
-+// };
-+// 
-+// &gmu {
-+// 	reg = <0x0 0x3d68000 0x0 0x37000>,
-+// 	      <0x0 0x3d40000 0x0 0x10000>,
-+// 	      <0x0 0xb280000 0x0 0x10000>;
-+// };
-+// 
-+// &gpucc {
-+// 	reg = <0x00 0x3d90000 0x00 0x9800>;
-+// };
-+
 +// Disable unused PMICs
 +// Those PMICs throws errors in CLI during initialization, likely nothing is connected to them.
 +&pm8010_m {
-+	status = "disabled";
++	status = "okay";
 +};
 +
 +&pm8010_n {
-+	status = "disabled";
++	status = "okay";
 +};
 +
 +&pmr735d_k {
-+	status = "disabled";
++	status = "okay";
 +};
 +
 +&lpass_vamacro {
 +	qcom,dmic-sample-rate = <600000>;
++};
++
++
++// Deleting compatible property due to masked kernel driver
++&crypto {
++	/delete-property/ compatible;
++};
++
++// Unless CX is declared as the power-domain of GCC, votes (power and
++// performance) on the GDSCs it provides will not propagate to the CX,
++// which might result in under-voltage conditions.
++&gcc {
++	power-domains = <&rpmhpd RPMHPD_CX>;
 +};

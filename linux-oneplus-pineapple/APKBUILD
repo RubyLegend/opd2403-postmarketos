@@ -3,7 +3,7 @@
 maintainer="Serhii Hatsan <serhiihatcan@gmail.com>"
 pkgname="linux-oneplus-pineapple"
 pkgver=7.3
-pkgrel=6
+pkgrel=7
 pkgdesc="OnePlus Pad 2 kernel fork"
 arch="aarch64"
 _carch="arm64"
@@ -34,7 +34,7 @@ makedepends="
 # Source
 _repository="torvalds/linux"
 _commit="fc710de0dd25ed50a087833b4171eb1a46737a9e" # Issue starts from fc710de0dd25ed50a087833b4171eb1a46737a9e. At aef2ca9353c2f26dbacfb3b8e6f33fecfbf2e67d it is definitely present.
-_tag="7.3-rc6" # without 'v' in the beginning
+_tag="7.3-rc7" # without 'v' in the beginning
 _config="config-$_flavor.$arch"
 builddir="$srcdir/linux-$_tag"
 #builddir="$srcdir/linux-$_commit"
@@ -61,8 +61,8 @@ source="
 	0054-panel-novatek-nt36532-debug_dsi_write.patch
 	0056-fix-pll-init.patch
 	0057-drivers-firmware-qcom-add_scm_supported_list.patch
-	0058-drivers-watchdog-gunyah-add-debugging.patch
 	0059-drivers-gpu-drm-panel-nt36532-remove-suspend-helpers.patch
+	0060-PCI-qcom-honor-iommu-map-cell-count.patch
 
 	dummy-dtbo.dtso
 	$_config
@@ -156,8 +156,8 @@ package() {
 }
 
 sha512sums="
-49f0e5aac43587a39f3de04125749ff89006b4fb49a606d7eb1f6e6b10ec8c50743bfbb09d809741c1412c348e4235b15acaa6109d3de8dfe96f98861e1a6160  linux-oneplus-pineapple-7.3-rc6.tar.gz
-0efb3f7d97d152ec33aa4efc9b51c1f1d1b975481bf022fab9c954959c92fa9f04a97f7498a34baba9e0cd5c3e4d177a2293d53a866378b96b63ca1a4cbfb3bd  0001-patch_pineapple_dts.patch
+a43556cfff1dc107cdceac9e8344a2ee7c304a6826e7c3cc08b1a0d2099320274cdb5b45948c0d86632b94b923a4036faa50e2b1b1c62c5a1315df00d9a95de3  linux-oneplus-pineapple-7.3-rc7.tar.gz
+68f5d8c507aeb3ba5e28beba21245020d0d823dd13e6ddf1334e3b4ef628d01654b68a8bf872d7a4e3084f050a0ab6c5dd8d0f246b2deaabf66ab231e5ae2779  0001-patch_pineapple_dts.patch
 0280c5381105a5bfdd46c37b50a5805b911a11131c2797fe9ad0686ce8555c66c84196a8ef4a9f66886291699c79c83a263087a86e67218a5a44532867ccd2b8  0002-patch_pineapple_dts_makefile.patch
 f1311d68398511375a3cca645344ec3d89a1032a52c6c2f608640f5e1d2af8f25150660ddbb5cf3c658e8ff96a6799ba0d6438219653677a85e23ad9527fb86f  0003-drm-panel-Add-support-for-novatek_nt36532.patch
 8d814a56cb2f9132137a85c2adb98db5fbbe9a57412d4ce65028518bc9423ea2c03178c61baffa02ee1e22bd59497b2610c7701d5a6be50f5e3e01d63f09f0ed  0006-drm-panel-fix-Novatek-nt36532-clock.patch
@@ -176,8 +176,9 @@ e37898c081375cfd63cd40791866c4371f0feb9771849ef6e6d6563ae411ee59ee5e6b7d78d0033a
 719c3e68dbda87e1cf703a07ceeade366004af199fee50faf4409af07df9f101cf35cfcc7df039daabfc1eaa5950939e92bb4d535fed9c754330a79bb028daff  0054-panel-novatek-nt36532-debug_dsi_write.patch
 1f8d75d4fc2d1490290aeda75d5079e7bcf9e677d5260d88bea5d802dc4d36361d663644c0ee124614e473bda617dd5fe37d89304fc55124727af275e3e51392  0056-fix-pll-init.patch
 c12bd561e8ffd5c77bd7acfabb0b8aa961a66de62753404fe419ae176aef718e772145e54b2661c98b31a1d52345db4b45dab76fed8adfd47d76ecca8b92c0bd  0057-drivers-firmware-qcom-add_scm_supported_list.patch
-0c5bc2f087cf4115373806febd2a952398b138b9291d6f4081c6d0227a05cf870f89505996c8078b01c2b2631e741667d606eaa68e0e7072afe6518ea3761415  0058-drivers-watchdog-gunyah-add-debugging.patch
+39606df79a9979972fbcdec7ea180102147639e284645562b531914c2d6ffae4e94a985f4356d2f9db2d26cd85cae08014e0a180b65bcfb5cd3e1366c4c655af  0058-drivers-watchdog-gunyah-add-debugging.patch
 6459bb6fb392a203868a44d441ad8fc9b5cd79d1dd13bc7838bade0d64388dd40738aecbd862ed823655f6701f5f1e10040993f402ff3d9f668d7a0dd11be85c  0059-drivers-gpu-drm-panel-nt36532-remove-suspend-helpers.patch
+b91cf57fb0fe057c0b3a8f95b09ee87568c62021325f9a2322dcea95fe3452302dc7e6929f3b3bd7a11da472245f432b95e2396f3887d5c2d48d507af5ff7f49  0060-PCI-qcom-honor-iommu-map-cell-count.patch
 7c1e8db50efe15b4c3c22ad6c7ac7f40649d5abc9f6f11c714c24d72bcfb467c91bef2b83f0dc21f101d827cf791ce30f6aa3a729c2986599ac4908428501ed1  dummy-dtbo.dtso
-e98c84d12364d14105c7ef9ac1d134d4977f5858e59d54c7814fd6a3c057b85056ebee5b8e3b7ebfb0d2fa889962e851122a932e2496121c36ce7e8183a5a5c1  config-oneplus-pineapple.aarch64
+39b453460cdf4e3f5e18f7f82a3c40f064230472ff211e6ef334e3a4213084a6f69bf11ce1102b4b40daaef324cebd90e7e8d00f88980cfc7ddb174d89070c06  config-oneplus-pineapple.aarch64
 "
