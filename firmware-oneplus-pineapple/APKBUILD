@@ -2,7 +2,7 @@ maintainer=""
 pkgname=firmware-oneplus-pineapple
 pkgver=1
 pkgrel=0
-_commit="df876c8f89e0fa493e44cf0c1176c9d2d1acc6f9"
+_commit="4c9d502695bd079073a76cd9de9b3a0e015d9e13"
 pkgdesc="Firmware files for OnePlus pineapple and pineapplep"
 url="https://github.com/RubyLegend/firmware-oneplus-pineapple"
 arch="aarch64"
@@ -76,7 +76,7 @@ sensors() {
 }
 
 sha512sums="
-898855ceb14736463409719d0dc3398f2a81b9be9b364d0c00cbb14cb98b1d047b7cbdd14a22bcbe94bf1592413e351ca01775686c939f889f1e5286ce9f1a08  firmware-oneplus-pineapple-df876c8f89e0fa493e44cf0c1176c9d2d1acc6f9.tar.gz
+a035ae8233be766654471a0124794ac23139a6a8b5f0ede07cdc85767a05e7c87cab923bca36a0013d25a54c35db6a25d0754a89b386e1242e40b4940b8f7a3d  firmware-oneplus-pineapple-0d43c1888f9e44f261ceef668b11e10828fc35d4.tar.gz
 dd22390e0ef5053fe19785db48ea7d2e7e580b4e753a01b727badee1d6b37f5e0c9d0a5297f44836e9881e546956f5a86d37ae42a0b706c70c03b805289b3bd0  0001-gpu-firmware.files
 c98052bca14a9677abe86b63567d4f4529a436a83c5fc71a9b26cce05e18f68a4a12e4dbbb82b563a38436da7c932fc2c6a4e0fdd3bc11145d98d4a7615a2eb9  0002-display-firmware.files
 71558da78915dc8c581ecb797f1f03b8572727f153aa7db95425b57668a167f31d5f54be5ef05a204c4a7e4114af8ad8a39c246c8cdaba510da99200c58f830e  0003-adsp-cdsp-firmware.files
